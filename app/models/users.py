@@ -1,7 +1,7 @@
 from app.models.base import Base
 from sqlalchemy.orm import Mapped, mapped_column
 
-class Users(Base):
+class UsersOrm(Base):
     __tablename__ = 'users'
 
     id: Mapped[int] = mapped_column(primary_key=True) 
