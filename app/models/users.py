@@ -11,9 +11,11 @@ class UsersOrm(Base):
     email: Mapped[str] = mapped_column(unique=True)
 
     developer_projects: Mapped[list['ProjectsOrm']] = relationship(
+        foreign_keys = 'ProjectsOrm.developer_id',
         back_populates = 'developer'
     )
 
     customer_projects: Mapped[list['ProjectsOrm']] = relationship(
+        foreign_keys = 'ProjectsOrm.customer_id',
         back_populates = 'customer'
     )

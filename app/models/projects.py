@@ -18,10 +18,12 @@ class ProjectsOrm(Base):
     status: Mapped[int] = mapped_column(ForeignKey('payments.id'))
 
     customer: Mapped['UsersOrm'] = relationship(
+        foreign_keys = [customer_id],
         back_populates = 'customer_projects'
     )
 
     developer: Mapped['UsersOrm'] = relationship(
+        foreign_keys = [developer_id],
         back_populates = 'developer_projects'
     )
 
