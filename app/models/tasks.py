@@ -1,0 +1,19 @@
+from app.models.base import Base
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import Date, ForeignKey
+from app.models.projects import ProjectsOrm
+
+
+class TasksOrm(Base):
+    __tablename__ = 'tasks'
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    task: Mapped[str]
+    description: Mapped[str]
+    deadline: Mapped[Date]
+    status: Mapped[bool]
+    project_id: Mapped[int] = mapped_column(ForeignKey('projects.id'))
+
+    project: Mapped['ProjectsOrm'] = relationship(
+        back_populates = 'project_task'
+    )

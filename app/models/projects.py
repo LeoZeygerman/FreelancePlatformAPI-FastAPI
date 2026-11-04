@@ -1,8 +1,10 @@
 from sqlalchemy import ForeignKey
+from app.models.tasks import TasksOrm
 from app.models.base import Base
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.models.payments import PaymentsOrm
 from app.models.users import UsersOrm
+
 
 class ProjectsOrm(Base):
     __tablename__ = 'projects'
@@ -16,13 +18,17 @@ class ProjectsOrm(Base):
     status: Mapped[int] = mapped_column(ForeignKey('payments.id'))
 
     customer: Mapped['UsersOrm'] = relationship(
-        back_populates = 'customer_project'
+        back_populates = 'customer_projects'
     )
 
     developer: Mapped['UsersOrm'] = relationship(
-        back_populates = 'developer_project'
+        back_populates = 'developer_projects'
     )
 
     status: Mapped['PaymentsOrm'] = relationship(
+        back_populates = 'project'
+    )
+
+    project_task: Mapped['TasksOrm'] = relationship(
         back_populates = 'project'
     )

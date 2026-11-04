@@ -10,10 +10,10 @@ class UsersOrm(Base):
     role: Mapped[str]
     email: Mapped[str] = mapped_column(unique=True)
 
-    developer_project: Mapped['ProjectsOrm'] = relationship(
+    developer_projects: Mapped[list['ProjectsOrm']] = relationship(
         back_populates = 'developer'
     )
 
-    customer_project: Mapped['ProjectsOrm'] = relationship(
+    customer_projects: Mapped[list['ProjectsOrm']] = relationship(
         back_populates = 'customer'
     )
