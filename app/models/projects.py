@@ -27,7 +27,8 @@ class ProjectsOrm(Base):
         back_populates = 'developer_projects'
     )
 
-    status: Mapped['PaymentsOrm'] = relationship(
+    payment_status: Mapped['PaymentsOrm'] = relationship(
+        foreign_keys = [status],
         back_populates = 'project'
     )
 
