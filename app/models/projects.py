@@ -33,10 +33,10 @@ class ProjectsOrm(Base):
         back_populates = 'project'
     )
 
-    project_task: Mapped['TasksOrm'] = relationship(
+    project_task: Mapped[list['TasksOrm']] = relationship(
         back_populates = 'project'
     )
 
-    developer_applications: Mapped['ApplicationsOrm'] = relationship(
+    developer_applications: Mapped[list['ApplicationsOrm']] = relationship(
         back_populates = 'project'
     )
