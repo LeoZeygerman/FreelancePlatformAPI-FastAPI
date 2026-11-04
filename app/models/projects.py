@@ -1,4 +1,5 @@
 from sqlalchemy import ForeignKey
+from app.models.applications import ApplicationsOrm
 from app.models.tasks import TasksOrm
 from app.models.base import Base
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -33,5 +34,9 @@ class ProjectsOrm(Base):
     )
 
     project_task: Mapped['TasksOrm'] = relationship(
+        back_populates = 'project'
+    )
+
+    developer_applications: Mapped['ApplicationsOrm'] = relationship(
         back_populates = 'project'
     )
