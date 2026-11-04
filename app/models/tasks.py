@@ -1,7 +1,8 @@
 from app.models.base import Base
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import Date, ForeignKey
+from sqlalchemy import ForeignKey
 from app.models.projects import ProjectsOrm
+from datetime import date
 
 
 class TasksOrm(Base):
@@ -10,7 +11,7 @@ class TasksOrm(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     task: Mapped[str]
     description: Mapped[str]
-    deadline: Mapped[Date]
+    deadline: Mapped[date]
     status: Mapped[bool]
     project_id: Mapped[int] = mapped_column(ForeignKey('projects.id'))
 

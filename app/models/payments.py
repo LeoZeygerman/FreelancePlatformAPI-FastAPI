@@ -1,7 +1,8 @@
 from app.models.base import Base
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import DateTime, ForeignKey, func
+from sqlalchemy import ForeignKey, func, DateTime
 from app.models.projects import ProjectsOrm
+from datetime import datetime
 
 
 class PaymentsOrm(Base):
@@ -11,9 +12,9 @@ class PaymentsOrm(Base):
     project_id: Mapped[int] = mapped_column(ForeignKey('projects.id'))
     amount: Mapped[int]
     status: Mapped[bool]
-    created_at: Mapped[DateTime] = mapped_column(
+    created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), 
-        func.now()
+        server_default=func.now()
     )
 
     project: Mapped['ProjectsOrm'] = relationship(

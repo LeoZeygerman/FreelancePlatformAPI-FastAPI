@@ -16,14 +16,14 @@ class ProjectsOrm(Base):
     budget: Mapped[int]
     customer_id: Mapped[int] = mapped_column(ForeignKey('users.id'))
     developer_id: Mapped[int | None] = mapped_column(ForeignKey('users.id'), nullable=True)
-    status: Mapped[int] = mapped_column(ForeignKey('payments.id'))
+    status: Mapped[bool]
 
     customer: Mapped['UsersOrm'] = relationship(
         foreign_keys = [customer_id],
         back_populates = 'customer_projects'
     )
 
-    developer: Mapped['UsersOrm'] = relationship(
+    developer: Mapped['UsersOrm | None'] = relationship(
         foreign_keys = [developer_id],
         back_populates = 'developer_projects'
     )
