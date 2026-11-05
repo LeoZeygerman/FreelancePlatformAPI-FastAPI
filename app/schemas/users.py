@@ -23,6 +23,11 @@ class ResponseUser(BaseModel):
     username: str
     role: str
     email: str
-    project: ResponseShortProject
+    project: ResponseShortProject | None = None
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class UpdateUser(BaseModel):
+    username: str | None = None
+    email: EmailStr | None = None
