@@ -2,7 +2,7 @@ from logging.config import fileConfig
 from sqlalchemy.engine import make_url
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
-from config import settings
+from app.config import settings
 from alembic import context
 from app.models import *
 from app.models.base import Base
@@ -11,7 +11,6 @@ from app.models.base import Base
 # access to the values within the .ini file in use.
 
 config = context.config
-config.set_main_option('sqlalchemy.url', settings.DATABASE_URL_asyncpg)
 
 url = config.get_main_option("sqlalchemy.url")
 print("Alembic driver:", make_url(url).drivername)
