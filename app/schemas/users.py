@@ -23,7 +23,7 @@ class ResponseUser(BaseModel):
     username: str
     role: str
     email: str
-    project: ResponseShortProject | None = None
+    project: list[ResponseShortProject] | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
