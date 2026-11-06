@@ -12,7 +12,7 @@ class TasksOrm(Base):
     task: Mapped[str]
     description: Mapped[str]
     deadline: Mapped[date]
-    status: Mapped[bool]
+    status: Mapped[bool] = mapped_column(default=False)
     project_id: Mapped[int] = mapped_column(ForeignKey('projects.id'))
 
     project: Mapped['ProjectsOrm'] = relationship(

@@ -1,5 +1,18 @@
 from datetime import date
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+
+class CreateTaskForProject(BaseModel):
+    task: str
+    description: str = Field(max_length=250)
+    deadline: date
+
+    @field_validator('deadline')
+    @classmethod
+    def validate_deadline(cls, value):
+        if value < date.today():
+            raise ValueError('Дедлайн не может быть прошедшим!')
+        return value
 
 
 class CreateProject(BaseModel):
@@ -7,6 +20,7 @@ class CreateProject(BaseModel):
     description: str = Field(max_length=150)
     budget: int
     customer_id: int
+    project_task: list[CreateTaskForProject]
 
 
 class ResponseUserForProject(BaseModel):
@@ -22,9 +36,10 @@ class ResponseTaskForProject(BaseModel):
 
 
 class ResponseProject(BaseModel):
+    id: int
     title: str
     description: str
-    budget: str
+    budget: int
     customer: ResponseUserForProject
     developer: list[ResponseUserForProject] | None = None
     status: bool
