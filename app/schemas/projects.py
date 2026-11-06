@@ -41,8 +41,15 @@ class ResponseProject(BaseModel):
     description: str
     budget: int
     customer: ResponseUserForProject
-    developer: list[ResponseUserForProject] | None = None
+    developer: ResponseUserForProject | None = None
     status: bool
     project_task: list[ResponseTaskForProject] | None = None
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class UpdateProject(BaseModel):
+    title: str | None = None
+    description: str | None = None
+    budget: int | None = None
+    status: bool | None = None
