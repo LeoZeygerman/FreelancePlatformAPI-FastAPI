@@ -1,4 +1,5 @@
-from pydantic import BaseModel, Field
+from datetime import date
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class CreateProject(BaseModel):
@@ -8,5 +9,25 @@ class CreateProject(BaseModel):
     customer_id: int
 
 
+class ResponseUserForProject(BaseModel):
+    username: str
+    email: str
+
+
+class ResponseTaskForProject(BaseModel):
+    task: str
+    description: str
+    deadline: date
+    status: bool
+
+
 class ResponseProject(BaseModel):
-    pass
+    title: str
+    description: str
+    budget: str
+    customer: ResponseUserForProject
+    developer: list[ResponseUserForProject] | None = None
+    status: bool
+    project_task: list[ResponseTaskForProject] | None = None
+
+    model_config = ConfigDict(from_attributes=True)
