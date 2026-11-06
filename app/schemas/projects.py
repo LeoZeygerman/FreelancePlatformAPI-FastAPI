@@ -27,12 +27,16 @@ class ResponseUserForProject(BaseModel):
     username: str
     email: str
 
+    model_config = ConfigDict(from_attributes=True)
+
 
 class ResponseTaskForProject(BaseModel):
     task: str
     description: str
     deadline: date
     status: bool
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ResponseProject(BaseModel):
