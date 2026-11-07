@@ -27,7 +27,7 @@ class ResponseUser(BaseModel):
     email: str
     developer_project: list[ResponseShortProject] | None = None
     customer_project: list[ResponseShortProject] | None = None
-    rating: int
+    rating: float | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
