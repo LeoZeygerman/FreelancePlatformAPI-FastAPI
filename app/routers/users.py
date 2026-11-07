@@ -70,7 +70,7 @@ async def get_customer_router(session: SessionDep, user_id: int):
 
 
 @router.patch('/update/{user_id}', summary='Изменить пользователя', response_model=ResponseUser)
-async def update_user_router(session: SessionDep, user_id: int, data: UpdateUser)
+async def update_user_router(session: SessionDep, user_id: int, data: UpdateUser):
     user = await session.scalar(
         select(UsersOrm)
         .where(UsersOrm.id == user_id)
@@ -89,3 +89,20 @@ async def update_user_router(session: SessionDep, user_id: int, data: UpdateUser
     await session.flush()
     await session.commit()
     return user
+
+
+@router.delete('/delete/{user_id}', summary='Удалить пользователя')
+async def delete_user_router(session: SessionDep, user_id: int):
+    user = await session.scalar(
+        select(UsersOrm)
+        .where(UsersOrm.id == user_id)
+        .options(
+            selectinload(UsersOrm.developer_projects),
+            selectinload(UsersOrm.customer_projects)
+        )
+    )
+    if user is None:
+        raise HTTPException(status_code=404, detail='Пользователь не найден!')
+    await session.delete(user)
+    await session.commit()
+    return {'msg': f'Пользователь {user.username} удален!'}
