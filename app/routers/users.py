@@ -22,7 +22,7 @@ async def create_user_router(session: SessionDep, user: CreateUser):
     return new_user
 
 
-@router.get('/get-all', summary='Показать всех пользователей')
+@router.get('/get-all', summary='Показать всех пользователей', response_model=list[ResponseUser])
 async def get_all_users_router(session: SessionDep):
     users = await session.scalars(
         select(UsersOrm)
@@ -34,3 +34,20 @@ async def get_all_users_router(session: SessionDep):
     result = users.all()
     if len(result) == 0:
         raise HTTPException(status_code=404, detail='Пользователи не найдены!')
+    return result
+
+
+@router.get('/developer/{user_id}', summary='Получить разработчика по ID', response_model=ResponseUser)
+async def get_developer_router(session: SessionDep, user_id: int):
+    developer = await session.scalar(
+        select(UsersOrm)
+        .where(UsersOrm.id == user_id)
+        .options(
+            selectinload(UsersOrm.developer_projects)
+        )
+    )
+    if developer is None:
+        raise HTTPException(status_code=404, detail='Пользователь не найден!')
+    elif developer.role != 'developer':
+        raise HTTPException(status_code=404, detail='Пользователь не разработчик!')
+    return developer
