@@ -3,7 +3,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from app.database import SessionDep
 from app.models.users import UsersOrm
-from app.schemas.users import CreateUser, ResponseUser
+from app.schemas.users import CreateUser, ResponseUser, UpdateUser
 
 
 router = APIRouter(prefix='/user', tags=['Пользователи'])
@@ -67,3 +67,25 @@ async def get_customer_router(session: SessionDep, user_id: int):
     elif customer.role != 'customer':
         raise HTTPException(status_code=404, detail='Пользователь не работодатель!')
     return customer
+
+
+@router.patch('/update/{user_id}', summary='Изменить пользователя', response_model=ResponseUser)
+async def update_user_router(session: SessionDep, user_id: int, data: UpdateUser)
+    user = await session.scalar(
+        select(UsersOrm)
+        .where(UsersOrm.id == user_id)
+        .options(
+            selectinload(UsersOrm.developer_projects),
+            selectinload(UsersOrm.customer_projects)
+        )
+    )
+    if user is None:
+        raise HTTPException(status_code=404, detail='Пользователь не найден!')
+
+    changes = data.model_dump(exclude_unset=True)
+    for key, value in changes.items():
+        setattr(user, key, value)
+
+    await session.flush()
+    await session.commit()
+    return user
