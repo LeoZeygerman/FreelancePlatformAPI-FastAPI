@@ -11,7 +11,7 @@ class PaymentsOrm(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     project_id: Mapped[int] = mapped_column(ForeignKey('projects.id'))
     amount: Mapped[int]
-    status: Mapped[bool]
+    status: Mapped[bool] = mapped_column(default=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), 
         server_default=func.now()
