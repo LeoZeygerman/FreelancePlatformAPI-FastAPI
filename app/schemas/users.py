@@ -24,6 +24,7 @@ class ResponseUser(BaseModel):
     role: str
     email: str
     project: list[ResponseShortProject] | None = None
+    rating: int
 
     model_config = ConfigDict(from_attributes=True)
 
