@@ -14,8 +14,8 @@ class ProjectsOrm(Base):
     title: Mapped[str]
     description: Mapped[str]
     budget: Mapped[int]
-    customer_id: Mapped[int] = mapped_column(ForeignKey('users.id'))
-    developer_id: Mapped[int | None] = mapped_column(ForeignKey('users.id'), nullable=True)
+    customer_id: Mapped[int] = mapped_column(ForeignKey('users.id', ondelete='CASCADE'))
+    developer_id: Mapped[int | None] = mapped_column(ForeignKey('users.id', ondelete='CASCADE'), nullable=True)
     status: Mapped[bool] = mapped_column(default=False)
 
     customer: Mapped['UsersOrm'] = relationship(
