@@ -12,16 +12,22 @@ class ResponseProjectForApplication(BaseModel):
     description: str
     budget: int
 
+    model_config = ConfigDict(from_attributes=True)
+
 
 class ResponseDeveloperForApplication(BaseModel):
         username: str
         email: str
 
+        model_config = ConfigDict(from_attributes=True)
+
 
 class ResponseApplication(BaseModel):
     project: ResponseProjectForApplication
     developer: ResponseDeveloperForApplication
-    cover_letter: str    
+    cover_letter: str
+
+    model_config = ConfigDict(from_attributes=True)    
 
 
 class UpdateApplication(BaseModel):
