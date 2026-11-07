@@ -1,6 +1,5 @@
 from datetime import date
-
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, ConfigDict
 
 
 class CreateTask(BaseModel):
@@ -17,3 +16,20 @@ class CreateTask(BaseModel):
         if value < date.today():
             raise ValueError('Дедлайн не может быть в прошедшем времени!')
         return value
+
+
+class ResponseProjectForTask(BaseModel):
+    title: str
+    description: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ResponseTask(BaseModel):
+    task: str
+    description: str
+    deadline: date
+    status: bool
+    project: ResponseProjectForTask
+
+    model_config = ConfigDict(from_attributes=True)
