@@ -12,6 +12,8 @@ class ResponseShortProject(BaseModel):
     title: str
     budget: int
 
+    model_config = ConfigDict(from_attributes=True)
+
 
 class CreateUser(BaseModel):
     username: str
@@ -23,7 +25,8 @@ class ResponseUser(BaseModel):
     username: str
     role: str
     email: str
-    project: list[ResponseShortProject] | None = None
+    developer_project: list[ResponseShortProject] | None = None
+    customer_project: list[ResponseShortProject] | None = None
     rating: int
 
     model_config = ConfigDict(from_attributes=True)

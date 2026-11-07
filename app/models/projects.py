@@ -29,7 +29,6 @@ class ProjectsOrm(Base):
     )
 
     payment_status: Mapped['PaymentsOrm'] = relationship(
-        foreign_keys = [status],
         back_populates = 'project'
     )
 

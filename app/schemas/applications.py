@@ -3,7 +3,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 class CreateApplication(BaseModel):
     project_id: int
-    develioer_id: int
+    developer_id: int
     cover_letter: str = Field(max_length=250)
 
 
@@ -16,10 +16,10 @@ class ResponseProjectForApplication(BaseModel):
 
 
 class ResponseDeveloperForApplication(BaseModel):
-        username: str
-        email: str
+    username: str
+    email: str
 
-        model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ResponseApplication(BaseModel):

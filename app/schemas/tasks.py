@@ -13,7 +13,7 @@ class CreateTask(BaseModel):
     @field_validator('deadline')
     @classmethod
     def validate_date(cls, value):
-        if value < date.today():
+        if value is not None and value < date.today():
             raise ValueError('Дедлайн не может быть в прошедшем времени!')
         return value
 
@@ -44,6 +44,6 @@ class UpdateTask(BaseModel):
     @field_validator('deadline')
     @classmethod
     def validate_date(cls, value):
-        if value < date.today():
+        if value is not None and value < date.today():
             raise ValueError('Дедлайн не может быть в прошедшем времени!')
         return value

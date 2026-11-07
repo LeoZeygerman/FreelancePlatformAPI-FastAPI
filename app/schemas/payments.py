@@ -20,6 +20,8 @@ class ResponsePayments(BaseModel):
     status: bool
     created_at: datetime
 
+    model_config = ConfigDict(from_attributes=True)
+
 
 class UpdatePayments(BaseModel):
     amount: int | None = None
