@@ -51,3 +51,19 @@ async def get_developer_router(session: SessionDep, user_id: int):
     elif developer.role != 'developer':
         raise HTTPException(status_code=404, detail='Пользователь не разработчик!')
     return developer
+
+
+@router.get('/customer/{user_id}', summary='Получить работодателя по ID', response_model=ResponseUser)
+async def get_customer_router(session: SessionDep, user_id: int):
+    customer = await session.scalar(
+        select(UsersOrm)
+        .where(UsersOrm.id == user_id)
+        .options(
+            selectinload(UsersOrm.customer_projects)
+        )
+    )
+    if customer is None:
+        raise HTTPException(status_code=404, detail='Пользователь не найден!')
+    elif customer.role != 'customer':
+        raise HTTPException(status_code=404, detail='Пользователь не работодатель!')
+    return customer
