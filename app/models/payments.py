@@ -9,7 +9,7 @@ class PaymentsOrm(Base):
     __tablename__ = 'payments'
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    project_id: Mapped[int] = mapped_column(ForeignKey('projects.id'))
+    project_id: Mapped[int] = mapped_column(ForeignKey('projects.id', ondelete='CASCADE'))
     amount: Mapped[int]
     status: Mapped[bool] = mapped_column(default=False)
     created_at: Mapped[datetime] = mapped_column(

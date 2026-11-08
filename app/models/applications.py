@@ -9,7 +9,7 @@ class ApplicationsOrm(Base):
     __tablename__ = 'applications'
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    project_id: Mapped[int] = mapped_column(ForeignKey('projects.id'))
+    project_id: Mapped[int] = mapped_column(ForeignKey('projects.id', ondelete='CASCADE'))
     developer_id: Mapped[int] = mapped_column(ForeignKey('users.id'))
     cover_letter: Mapped[str] 
 
