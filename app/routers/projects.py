@@ -4,7 +4,7 @@ from sqlalchemy.orm import selectinload
 from app.database import SessionDep
 from app.models.projects import ProjectsOrm
 from app.models.tasks import TasksOrm
-from app.schemas.projects import CreateProject, ResponseProject, CreateTaskForProject
+from app.schemas.projects import CreateProject, ResponseProject, CreateTaskForProject, ResponseProjectShort
 
 
 router = APIRouter(prefix='/project', tags=['Проекты'])
@@ -45,5 +45,19 @@ async def get_project_by_id_router(session: SessionDep, project_id: int):
     if project is None:
         raise HTTPException(status_code=404, detail='Проект не найден!')
     return project
+
+
+@router.get('/all', summary='Получить все проекты', response_model=ResponseProjectShort)
+async def get_all_projects_router(session: SessionDep):
+    projects = await session.scalars(
+        select(ProjectsOrm)
+    )
+    result = projects.all()
+    if len(result) == 0:
+        raise HTTPException(status_code=404, detail='Проектов нет!')
+    return result
+
+
+
 
 
