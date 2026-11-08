@@ -12,7 +12,7 @@ class ReviewsOrm(Base):
     project_id: Mapped[int] = mapped_column(ForeignKey('projects.id'))
     reviewer_id: Mapped[int] = mapped_column(ForeignKey('users.id'))
     reviewee_id: Mapped[int] = mapped_column(ForeignKey('users.id'))
-    rating: Mapped[int]
+    rating: Mapped[float]
 
     reviewee_project: Mapped['ProjectsOrm'] = relationship(
         foreign_keys = project_id,
