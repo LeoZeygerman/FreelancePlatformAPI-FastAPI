@@ -1,10 +1,10 @@
-from app.config import setting
+from app.config import settings
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from typing import Annotated
 
 
-engine = create_async_engine(url=setting.DATABASE_URL_asyncpg)
+engine = create_async_engine(url=settings.DATABASE_URL_asyncpg)
 
 new_session = async_sessionmaker(engine, expire_on_commit=False)
 
