@@ -68,10 +68,8 @@ async def update_project_router(session: SessionDep, project_id: int, data: Upda
         raise HTTPException(status_code=404, detail='Проект не найден!')
 
     changes = data.model_dump(exclude_unset=True)
-    if changes['status'] == False and 'developer_rating' or 'customer_rating' in changes:
-        raise ValueError('Нельзя ставить оценку до того как работа завершена!')
+
     for key, value in changes.items():
         setattr(project, key, value)
     await session.commit()
-    await session.flush()
     return project
