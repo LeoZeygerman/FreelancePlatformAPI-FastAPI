@@ -18,7 +18,7 @@ class CreateTaskForProject(BaseModel):
 class CreateProject(BaseModel):
     title: str = Field(max_length=50)
     description: str = Field(max_length=150)
-    budget: int
+    budget: float
     customer_id: int
     project_task: list[CreateTaskForProject]
 
@@ -43,7 +43,7 @@ class ResponseProject(BaseModel):
     id: int
     title: str
     description: str
-    budget: int
+    budget: float
     customer: ResponseUserForProject
     developer: ResponseUserForProject | None = None
     status: bool
@@ -52,10 +52,17 @@ class ResponseProject(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class ResponseProjectShort(BaseModel):
+    id: int
+    title: str
+    description: str
+    budget: float
+
+
 class UpdateProject(BaseModel):
     title: str | None = None
     description: str | None = None
-    budget: int | None = None
+    budget: float | None = None
     status: bool | None = None
     developer_rating: int | None = Field(default=None, gt=0, le=5)
     customer_rating: int | None = Field(default=None, gt=0, le=5)
