@@ -73,3 +73,21 @@ async def update_project_router(session: SessionDep, project_id: int, data: Upda
         setattr(project, key, value)
     await session.commit()
     return project
+
+
+@router.delete('/delete/{project_id}', summary='Удалить проект')
+async def delete_project_router(session: SessionDep, project_id: int):
+    project = await session.scalar(
+        select(ProjectsOrm)
+        .where(ProjectsOrm.id == project_id)
+        .options(
+            selectinload(ProjectsOrm.payment_status),
+            selectinload(ProjectsOrm.customer),
+            selectinload(ProjectsOrm.developer),
+            selectinload(ProjectsOrm.project_task),
+            selectinload(ProjectsOrm.developer_applications)
+        )
+    )
+    await session.delete(project)
+    await session.commit()
+    return {'msg': f'Проект {project.title} удален!'}
