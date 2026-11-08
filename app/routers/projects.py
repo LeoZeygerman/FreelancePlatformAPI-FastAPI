@@ -4,7 +4,7 @@ from sqlalchemy.orm import selectinload
 from app.database import SessionDep
 from app.models.projects import ProjectsOrm
 from app.models.tasks import TasksOrm
-from app.schemas.projects import CreateProject, ResponseProject, CreateTaskForProject, ResponseProjectShort
+from app.schemas.projects import CreateProject, ResponseProject, CreateTaskForProject, ResponseProjectShort, UpdateProject
 
 
 router = APIRouter(prefix='/project', tags=['Проекты'])
@@ -58,6 +58,20 @@ async def get_all_projects_router(session: SessionDep):
     return result
 
 
+@router.patch('/update/{project_id}', summary='Обновить проект', response_model=ResponseProject)
+async def update_project_router(session: SessionDep, project_id: int, data: UpdateProject):
+    project = await session.scalar(
+        select(ProjectsOrm)
+        .where(ProjectsOrm.id == project_id)
+    )
+    if project is None:
+        raise HTTPException(status_code=404, detail='Проект не найден!')
 
-
-
+    changes = data.model_dump(exclude_unset=True)
+    if changes['status'] == False and 'developer_rating' or 'customer_rating' in changes:
+        raise ValueError('Нельзя ставить оценку до того как работа завершена!')
+    for key, value in changes.items():
+        setattr(project, key, value)
+    await session.commit()
+    await session.flush()
+    return project

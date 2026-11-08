@@ -57,6 +57,7 @@ class ResponseProjectShort(BaseModel):
     title: str
     description: str
     budget: float
+    status: bool
 
 
 class UpdateProject(BaseModel):
