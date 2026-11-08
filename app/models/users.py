@@ -2,6 +2,7 @@ from app.models.applications import ApplicationsOrm
 from app.models.base import Base
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.models.projects import ProjectsOrm
+from app.models.reviews import ReviewsOrm
 
 
 class UsersOrm(Base):
@@ -25,4 +26,14 @@ class UsersOrm(Base):
 
     developer_applications: Mapped[list['ApplicationsOrm']] = relationship(
         back_populates = 'developer'
+    )
+
+    user_reviews: Mapped[list['ReviewsOrm']] = relationship(
+        foreign_keys = 'ReviewsOrm.reviewer_id',
+        back_populates = 'reviewer'
+    )
+
+    user_rating: Mapped[list['ReviewsOrm']] = relationship(
+        foreign_keys = 'ReviewsOrm.reviewee_id',
+        back_populates = 'reviewee'
     )

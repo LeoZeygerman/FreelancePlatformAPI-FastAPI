@@ -1,5 +1,6 @@
 from sqlalchemy import ForeignKey
 from app.models.applications import ApplicationsOrm
+from app.models.reviews import ReviewsOrm
 from app.models.tasks import TasksOrm
 from app.models.base import Base
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -38,4 +39,9 @@ class ProjectsOrm(Base):
 
     developer_applications: Mapped[list['ApplicationsOrm']] = relationship(
         back_populates = 'project'
+    )
+
+    project_reviews: Mapped[list['ReviewsOrm']] = relationship(
+        foreign_keys='ReviewsOrm.project_id',
+        back_populates = 'reviewee_project'
     )
