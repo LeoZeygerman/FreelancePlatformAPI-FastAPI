@@ -10,14 +10,16 @@ from app.schemas.tasks import CreateTask, ResponseTask
 router = APIRouter(prefix='/task', tags=['Задачи проекта'])
 
 
-@router.get('/create', summary='Добавить задачу', response_model=ResponseTask)
+@router.post('/create', summary='Добавить задачу', response_model=ResponseTask)
 async def create_task_router(session: SessionDep, customer_id: int, task: CreateTask):
     user = await session.scalar(
         select(UsersOrm)
         .where(UsersOrm.id == customer_id)
     )
 
-    if user.role != 'customer':
+    if user is None:
+        raise HTTPException(status_code=404, detail='Пользователь не найден!')
+    elif user.role != 'customer':
         raise HTTPException(status_code=404, detail='Только customer может добавлять задачи!')
 
     project = await session.scalar(
@@ -30,11 +32,10 @@ async def create_task_router(session: SessionDep, customer_id: int, task: Create
         raise HTTPException(status_code=404, detail='Только создатель проекта может добавлять задачи!')
 
     new_task = TasksOrm(
-        project_id = task.project_id,
+        project = project,
         task = task.task,
         description = task.description,
         deadline = task.deadline,
-        status = task.status,
     )
     session.add(new_task)
     await session.commit()
