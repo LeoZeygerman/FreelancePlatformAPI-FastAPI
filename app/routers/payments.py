@@ -63,3 +63,17 @@ async def update_payment_router(session: SessionDep, payment_id: int, data: Upda
     await session.flush()
     await session.commit()
     return payment
+
+
+@router.delete('/delete/{payment_id}', summary='Удалить оплату')
+async def delete_payment_router(session: SessionDep, payment_id: int):
+    payment = await session.scalar(
+        select(PaymentsOrm)
+        .where(PaymentsOrm.id == payment_id)
+    )
+    if payment is None:
+        raise HTTPException(status_code=404, detail='Оплата не найдена!')
+
+    await session.delete(payment)
+    await session.commit()
+    return {'msg': f'Оплата {payment_id} удалена!'}
