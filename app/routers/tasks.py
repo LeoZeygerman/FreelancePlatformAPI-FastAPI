@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from app.database import SessionDep
 from app.models.projects import ProjectsOrm
 from app.models.tasks import TasksOrm
@@ -40,3 +41,17 @@ async def create_task_router(session: SessionDep, customer_id: int, task: Create
     session.add(new_task)
     await session.commit()
     return new_task
+
+
+@router.get('/{task_id}', summary='Найти задачу по ID', response_model=ResponseTask)
+async def get_task_by_id(session: SessionDep, task_id: int):
+    task = await session.scalar(
+        select(TasksOrm)
+        .where(TasksOrm.id == task_id)
+        .options(
+            selectinload(TasksOrm.project)
+        )
+    )
+    if task is None:
+        raise HTTPException(status_code=404, detail='Задача не найдена!')
+    return task

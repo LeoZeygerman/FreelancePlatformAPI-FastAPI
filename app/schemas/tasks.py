@@ -7,7 +7,6 @@ class CreateTask(BaseModel):
     task: str = Field(max_length=50)
     description: str = Field(max_length=300)
     deadline: date
-    status: bool
 
     @field_validator('deadline')
     @classmethod
