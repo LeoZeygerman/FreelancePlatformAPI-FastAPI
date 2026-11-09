@@ -5,7 +5,7 @@ from app.database import SessionDep
 from app.models.projects import ProjectsOrm
 from app.models.tasks import TasksOrm
 from app.models.users import UsersOrm
-from app.schemas.tasks import CreateTask, ResponseTask
+from app.schemas.tasks import CreateTask, ResponseTask, UpdateTask
 
 
 router = APIRouter(prefix='/task', tags=['Задачи проекта'])
@@ -54,4 +54,24 @@ async def get_task_by_id(session: SessionDep, task_id: int):
     )
     if task is None:
         raise HTTPException(status_code=404, detail='Задача не найдена!')
+    return task
+
+
+@router.patch('/{task_id}', summary='Обновить задачу', response_model=ResponseTask)
+async def update_task_router(session: SessionDep, task_id: int, data: UpdateTask):
+    task = await session.scalar(
+        select(TasksOrm)
+        .where(TasksOrm.id == task_id)
+        .options(
+            selectinload(TasksOrm.project)
+        )
+    )
+    if task is None:
+        raise HTTPException(status_code=404, detail='Задача не найдена!')
+
+    changes = data.model_dump(exclude_unset=True)
+    for key, value in changes.items():
+        setattr(task, key, value)
+    await session.flush()
+    await session.commit()
     return task
