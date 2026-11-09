@@ -4,7 +4,7 @@ from sqlalchemy.orm import selectinload
 from app.database import SessionDep
 from app.models.payments import PaymentsOrm
 from app.models.projects import ProjectsOrm
-from app.schemas.payments import CreatePayments, ResponsePayments
+from app.schemas.payments import CreatePayments, ResponsePayments, UpdatePayments
 
 
 router = APIRouter(prefix='/payment', tags=['Оплата'])
@@ -41,5 +41,25 @@ async def get_payment_router(session: SessionDep, payment_id: int):
     )
     if payment is None:
         raise HTTPException(status_code=404, detail='Оплата не найдена!')
+    return payment
 
+
+@router.patch('/update/{payment_id}', summary='Обновить оплату', response_model=ResponsePayments)
+async def update_payment_router(session: SessionDep, payment_id: int, data: UpdatePayments):
+    payment = await session.scalar(
+        select(PaymentsOrm)
+        .where(PaymentsOrm.id == payment_id)
+        .options(
+            selectinload(PaymentsOrm.project)
+        )
+    )
+    if payment is None:
+        raise HTTPException(status_code=404, detail='Оплата не найдена!')
+
+    changes = data.model_dump(exclude_unset=True)
+    for key, value in changes.items():
+        setattr(payment, key, value)
+
+    await session.flush()
+    await session.commit()
     return payment
