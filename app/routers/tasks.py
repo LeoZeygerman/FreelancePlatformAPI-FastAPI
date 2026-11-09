@@ -30,8 +30,12 @@ async def create_task_router(session: SessionDep, customer_id: int, task: Create
         raise HTTPException(status_code=404, detail='Только создатель проекта может добавлять задачи!')
 
     new_task = TasksOrm(
+        project_id = task.project_id,
         task = task.task,
         description = task.description,
         deadline = task.deadline,
         status = task.status,
     )
+    session.add(new_task)
+    await session.commit()
+    return new_task
