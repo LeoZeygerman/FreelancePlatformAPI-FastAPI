@@ -3,7 +3,6 @@ from pydantic import BaseModel, Field, field_validator, ConfigDict
 
 
 class CreateTask(BaseModel):
-    customer_id: int
     project_id: int
     task: str = Field(max_length=50)
     description: str = Field(max_length=300)
