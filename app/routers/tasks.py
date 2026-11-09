@@ -57,7 +57,7 @@ async def get_task_by_id(session: SessionDep, task_id: int):
     return task
 
 
-@router.patch('/{task_id}', summary='Обновить задачу', response_model=ResponseTask)
+@router.patch('/update/{task_id}', summary='Обновить задачу', response_model=ResponseTask)
 async def update_task_router(session: SessionDep, task_id: int, data: UpdateTask):
     task = await session.scalar(
         select(TasksOrm)
@@ -72,6 +72,21 @@ async def update_task_router(session: SessionDep, task_id: int, data: UpdateTask
     changes = data.model_dump(exclude_unset=True)
     for key, value in changes.items():
         setattr(task, key, value)
+
     await session.flush()
     await session.commit()
     return task
+
+
+@router.delete('/delete/{task_id}', summary='Удаление задачи')
+async def delete_task_router(session: SessionDep, task_id: int):
+    task = await session.scalar(
+        select(TasksOrm)
+        .where(TasksOrm.id == task_id)
+    )
+    if task is None:
+        raise HTTPException(status_code=404, detail='Задача не найдена!')
+
+    await session.delete(task)
+    await session.commit()
+    return {'msg': 'Задача удалена!'}
