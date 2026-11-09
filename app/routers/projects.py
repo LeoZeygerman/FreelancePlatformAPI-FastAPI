@@ -1,10 +1,11 @@
 from fastapi import APIRouter, HTTPException
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
 from app.database import SessionDep
 from app.models.projects import ProjectsOrm
 from app.models.reviews import ReviewsOrm
 from app.models.tasks import TasksOrm
+from app.models.users import UsersOrm
 from app.schemas.projects import CreateProject, ResponseProject, CreateTaskForProject, ResponseProjectShort, UpdateProject
 from app.schemas.reviews import CreateReview
 
@@ -95,8 +96,21 @@ async def add_mark_router(session: SessionDep, project: CreateReview, project_id
         rating = project.rating
     )
     session.add(new_mark)
+    await session.flush()
+
+    new_rating = await session.scalar(
+        select(func.avg(ReviewsOrm.rating))
+        .where(ReviewsOrm.reviewee_id == project.reviewee_id)
+    )
+
+    user = await session.scalar(
+        select(UsersOrm)
+        .where(UsersOrm.id == project.reviewee_id)
+    )
+    user.rating = new_rating
+
     await session.commit()
-    return {'msg': {'Оценка успешно выставлена!'}}
+    return {'msg': f'Оценка пользователю {user.username} успешно выставлена!'}
 
 
 @router.delete('/delete/{project_id}', summary='Удалить проект')
