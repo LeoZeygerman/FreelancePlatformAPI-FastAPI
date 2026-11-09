@@ -25,23 +25,23 @@ class ProjectsOrm(Base):
     )
 
     developer: Mapped['UsersOrm | None'] = relationship(
-        foreign_keys = [developer_id],
-        back_populates = 'developer_projects'
+        foreign_keys=[developer_id],
+        back_populates='developer_projects'
     )
 
     payment_status: Mapped['PaymentsOrm'] = relationship(
-        back_populates = 'project'
+        back_populates='project'
     )
 
     project_task: Mapped[list['TasksOrm']] = relationship(
-        back_populates = 'project'
+        back_populates='project'
     )
 
     developer_applications: Mapped[list['ApplicationsOrm']] = relationship(
-        back_populates = 'project'
+        back_populates='project'
     )
 
     project_reviews: Mapped[list['ReviewsOrm']] = relationship(
         foreign_keys='ReviewsOrm.project_id',
-        back_populates = 'reviewee_project'
+        back_populates='reviewee_project'
     )

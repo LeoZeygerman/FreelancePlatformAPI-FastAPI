@@ -18,5 +18,5 @@ class PaymentsOrm(Base):
     )
 
     project: Mapped['ProjectsOrm'] = relationship(
-        back_populates = 'payment_status'
+        back_populates='payment_status'
     )

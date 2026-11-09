@@ -20,11 +20,11 @@ class ReviewsOrm(Base):
     )
 
     reviewer: Mapped['UsersOrm'] = relationship(
-        foreign_keys = reviewer_id,
-        back_populates = 'customer_review'
+        foreign_keys=reviewer_id,
+        back_populates='user_reviews'
     )
 
     reviewee: Mapped['UsersOrm'] = relationship(
-        foreign_keys = reviewee_id,
-        back_populates = 'user_rating'
+        foreign_keys=reviewee_id,
+        back_populates='user_rating'
     )

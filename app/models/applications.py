@@ -14,11 +14,11 @@ class ApplicationsOrm(Base):
     cover_letter: Mapped[str] 
 
     project: Mapped['ProjectsOrm'] = relationship(
-        foreign_keys = project_id,
+        foreign_keys=project_id,
         back_populates = 'developer_applications'
     )
 
     developer: Mapped['UsersOrm'] = relationship(
-        foreign_keys = developer_id,
-        back_populates = 'developer_applications'
+        foreign_keys=developer_id,
+        back_populates='developer_applications'
     )
