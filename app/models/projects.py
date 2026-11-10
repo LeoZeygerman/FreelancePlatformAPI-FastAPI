@@ -1,11 +1,14 @@
 from sqlalchemy import ForeignKey
-from app.models.applications import ApplicationsOrm
-from app.models.reviews import ReviewsOrm
-from app.models.tasks import TasksOrm
-from app.models.base import Base
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from app.models.payments import PaymentsOrm
-from app.models.users import UsersOrm
+from typing import TYPE_CHECKING
+from app.models.base import Base
+
+if TYPE_CHECKING:
+    from app.models.applications import ApplicationsOrm
+    from app.models.reviews import ReviewsOrm
+    from app.models.tasks import TasksOrm
+    from app.models.payments import PaymentsOrm
+    from app.models.users import UsersOrm
 
 
 class ProjectsOrm(Base):

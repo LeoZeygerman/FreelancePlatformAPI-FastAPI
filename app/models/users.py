@@ -1,8 +1,11 @@
-from app.models.applications import ApplicationsOrm
-from app.models.base import Base
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from app.models.projects import ProjectsOrm
-from app.models.reviews import ReviewsOrm
+from app.models.base import Base
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.models.applications import ApplicationsOrm
+    from app.models.projects import ProjectsOrm
+    from app.models.reviews import ReviewsOrm
 
 
 class UsersOrm(Base):

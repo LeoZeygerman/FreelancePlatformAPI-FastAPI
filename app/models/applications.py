@@ -1,8 +1,11 @@
 from sqlalchemy import ForeignKey
 from app.models.base import Base
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from app.models.projects import ProjectsOrm
-from app.models.users import UsersOrm
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.models.projects import ProjectsOrm
+    from app.models.users import UsersOrm
 
 
 class ApplicationsOrm(Base):
