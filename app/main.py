@@ -1,6 +1,5 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponses
 from app.database import engine
 from app.models.base import Base
 from app.routers.tasks import router as tasks_router

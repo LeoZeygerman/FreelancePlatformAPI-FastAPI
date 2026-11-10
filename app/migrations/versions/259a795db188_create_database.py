@@ -26,7 +26,7 @@ def upgrade() -> None:
     sa.Column('username', sa.String(), nullable=False),
     sa.Column('role', sa.String(), nullable=False),
     sa.Column('email', sa.String(), nullable=False),
-    sa.Column('rating', sa.Double(), nullable=False),
+    sa.Column('rating', sa.Double(), nullable=True),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('email')
     )
@@ -65,7 +65,7 @@ def upgrade() -> None:
     sa.Column('project_id', sa.Integer(), nullable=False),
     sa.Column('reviewer_id', sa.Integer(), nullable=False),
     sa.Column('reviewee_id', sa.Integer(), nullable=False),
-    sa.Column('rating', sa.Double(), nullable=False),
+    sa.Column('rating', sa.Double(), nullable=True),
     sa.ForeignKeyConstraint(['project_id'], ['projects.id'], ),
     sa.ForeignKeyConstraint(['reviewee_id'], ['users.id'], ),
     sa.ForeignKeyConstraint(['reviewer_id'], ['users.id'], ),
