@@ -5,7 +5,7 @@ from app.database import SessionDep
 from app.models.applications import ApplicationsOrm
 from app.models.projects import ProjectsOrm
 from app.models.users import UsersOrm
-from app.schemas.applications import CreateApplication, ResponseApplication
+from app.schemas.applications import CreateApplication, ResponseApplication, UpdateApplication
 
 
 router = APIRouter(prefix='/application', tags=['Заявки'])
@@ -53,4 +53,34 @@ async def get_application_by_id(session: SessionDep, application_id: int):
     )
     if application is None:
         raise HTTPException(status_code=404, detail='Заявка не найдена!')
+    return application
+
+
+@router.patch('/update/{application_id}', summary='Отредактировать заявку', response_model=ResponseApplication)
+async def update_application_router(session: SessionDep, application_id: int, developer_id: int, data: UpdateApplication):
+    application = await session.scalar(
+        select(ApplicationsOrm)
+        .where(ApplicationsOrm.id == application_id)
+        .options(
+            selectinload(ApplicationsOrm.project),
+            selectinload(ApplicationsOrm.developer)
+        )
+    )
+    if application is None:
+        raise HTTPException(status_code=404, detail='Заявка не найдена!')
+
+    developer = await session.scalar(
+        select(UsersOrm)
+        .where(UsersOrm.id == developer_id)
+    )
+    if developer is None:
+        raise HTTPException(status_code=404, detail='Пользователь не найден!')
+    elif developer.id != application.developer_id:
+        raise HTTPException(status_code=403, detail='Только разработчик, оставивший заявку, может ее редактировать!')
+
+    changes = data.model_dump(exclude_unset=True)
+    for key, value in changes.items():
+        setattr(application, key, value)
+
+    await session.commit()
     return application
