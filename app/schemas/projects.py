@@ -18,7 +18,7 @@ class CreateTaskForProject(BaseModel):
 class CreateProject(BaseModel):
     title: str = Field(max_length=50)
     description: str = Field(max_length=150)
-    budget: float
+    budget: float = Field(gt=0)
     customer_id: int
     project_task: list[CreateTaskForProject]
 

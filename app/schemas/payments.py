@@ -1,10 +1,10 @@
 from datetime import datetime
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class CreatePayments(BaseModel):
     project_id: int
-    amount: int
+    amount: int = Field(gt=0)
 
 
 class ResponseProjectForPayments(BaseModel):
