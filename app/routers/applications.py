@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from app.database import SessionDep
 from app.models.applications import ApplicationsOrm
 from app.models.projects import ProjectsOrm
@@ -41,4 +42,15 @@ async def create_application_router(session: SessionDep, application: CreateAppl
 
 
 @router.get('/{application_id}', summary='Найти заявку', response_model=ResponseApplication)
-async def get_application_by_id(session: SessionDep, application_id: int)
+async def get_application_by_id(session: SessionDep, application_id: int):
+    application = await session.scalar(
+        select(ApplicationsOrm)
+        .where(ApplicationsOrm.id == application_id)
+        .options(
+            selectinload(ApplicationsOrm.developer),
+            selectinload(ApplicationsOrm.project)
+        )
+    )
+    if application is None:
+        raise HTTPException(status_code=404, detail='Заявка не найдена!')
+    return application
