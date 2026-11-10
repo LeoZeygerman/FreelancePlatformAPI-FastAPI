@@ -43,7 +43,8 @@ async def get_developer_router(session: SessionDep, user_id: int):
         select(UsersOrm)
         .where(UsersOrm.id == user_id)
         .options(
-            selectinload(UsersOrm.developer_projects)
+            selectinload(UsersOrm.developer_projects),
+            selectinload(UsersOrm.customer_projects)
         )
     )
     if developer is None:
@@ -59,7 +60,8 @@ async def get_customer_router(session: SessionDep, user_id: int):
         select(UsersOrm)
         .where(UsersOrm.id == user_id)
         .options(
-            selectinload(UsersOrm.customer_projects)
+            selectinload(UsersOrm.customer_projects),
+            selectinload(UsersOrm.developer_projects)
         )
     )
     if customer is None:
