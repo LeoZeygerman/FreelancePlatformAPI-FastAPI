@@ -1,9 +1,9 @@
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, EmailStr
 
 
 class CreateApplication(BaseModel):
     project_id: int
-    developer_id: int
+    developer_email: EmailStr
     cover_letter: str = Field(max_length=250)
 
 
