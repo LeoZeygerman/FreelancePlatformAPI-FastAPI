@@ -15,7 +15,10 @@ class UsersOrm(Base):
     username: Mapped[str]
     role: Mapped[str]
     email: Mapped[str] = mapped_column(unique=True)
-    rating: Mapped[float] = mapped_column(default=None)
+    rating: Mapped[float | None] = mapped_column(
+        default=None,
+        nullable=True
+    )
 
     developer_projects: Mapped[list['ProjectsOrm']] = relationship(
         foreign_keys = 'ProjectsOrm.developer_id',
