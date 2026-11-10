@@ -35,3 +35,10 @@ class ResponseUser(BaseModel):
 class UpdateUser(BaseModel):
     username: str | None = None
     email: EmailStr | None = None
+
+
+class ResponseUserShort(BaseModel):
+    id: int
+    username: str
+    role: str
+    email: str

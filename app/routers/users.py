@@ -3,13 +3,13 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from app.database import SessionDep
 from app.models.users import UsersOrm
-from app.schemas.users import CreateUser, ResponseUser, UpdateUser
+from app.schemas.users import CreateUser, ResponseUser, ResponseUserShort, UpdateUser
 
 
 router = APIRouter(prefix='/user', tags=['Пользователи'])
 
 
-@router.post('/create', summary='Добавить пользователя', response_model=ResponseUser)
+@router.post('/create', summary='Добавить пользователя', response_model=ResponseUserShort)
 async def create_user_router(session: SessionDep, user: CreateUser):
     new_user = UsersOrm(
         username = user.username,
