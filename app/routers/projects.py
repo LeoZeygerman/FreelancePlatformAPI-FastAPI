@@ -50,7 +50,7 @@ async def get_project_by_id_router(session: SessionDep, project_id: int):
     return project
 
 
-@router.get('/all', summary='Получить все проекты', response_model=ResponseProjectShort)
+@router.get('/all', summary='Получить все проекты', response_model=list[ResponseProjectShort])
 async def get_all_projects_router(session: SessionDep):
     projects = await session.scalars(
         select(ProjectsOrm)
@@ -66,6 +66,11 @@ async def update_project_router(session: SessionDep, project_id: int, data: Upda
     project = await session.scalar(
         select(ProjectsOrm)
         .where(ProjectsOrm.id == project_id)
+        .options(
+            selectinload(ProjectsOrm.developer),
+            selectinload(ProjectsOrm.customer),
+            selectinload(ProjectsOrm.project_task)
+        )
     )
     if project is None:
         raise HTTPException(status_code=404, detail='Проект не найден!')
