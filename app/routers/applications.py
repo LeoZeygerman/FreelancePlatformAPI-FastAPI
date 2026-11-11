@@ -84,3 +84,26 @@ async def update_application_router(session: SessionDep, application_id: int, de
 
     await session.commit()
     return application
+
+
+@router.delete('/delete/{application_id}', summary='Удаление заявки')
+async def delete_application_router(session: SessionDep, developer_id: int, application_id: int):
+    developer = await session.scalar(
+        select(UsersOrm)
+        .where(UsersOrm.id == developer_id)
+    )
+    if developer.role != 'developer':
+        raise HTTPException(status_code=403, detail='Только developer может удалять заявку!')
+
+    application = await session.scalar(
+        select(ApplicationsOrm)
+        .where(ApplicationsOrm.id == application_id)
+    )
+    if application is None:
+        raise HTTPException(status_code=404, detail='Заявка не найдена!')
+    elif application.developer_id != developer_id:
+        raise HTTPException(status_code=403, detail='Только владелец заявки может ее удалить!')
+
+    await session.delete(application)
+    await session.commit()
+    return {'msg': f'Заявка {application_id} успешно удалена!'}
