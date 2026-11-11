@@ -89,6 +89,24 @@ async def get_top_developers_router(session: SessionDep, limit: int = Query(ge=1
     return result
 
 
+@router.get('/customers', summary='Получить топ создателей по рейтингу', response_model=list[ResponseUser])
+async def get_top_customers_router(session: SessionDep, limit: int = Query(ge=1, default=10, le=100)):
+    customers = await session.scalars(
+        select(UsersOrm)
+        .where(UsersOrm.role == 'customer')
+        .options(
+            selectinload(UsersOrm.customer_projects),
+            selectinload(UsersOrm.developer_projects)
+        )
+        .order_by(UsersOrm.rating.desc().nullslast())
+        .limit(limit)
+    )
+    result = customers.all()
+    if len(result) == 0:
+        raise HTTPException(status_code=404, detail='Создателей нет!')
+    return result
+
+
 @router.patch('/update/{user_id}', summary='Изменить пользователя', response_model=ResponseUser)
 async def update_user_router(session: SessionDep, user_id: int, data: UpdateUser):
     user = await session.scalar(
