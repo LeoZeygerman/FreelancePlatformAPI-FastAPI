@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from app.database import SessionDep
@@ -69,6 +69,24 @@ async def get_customer_router(session: SessionDep, user_id: int):
     elif customer.role != 'customer':
         raise HTTPException(status_code=404, detail='Пользователь не работодатель!')
     return customer
+
+
+@router.get('/developers', summary='Получить топ разработчиков по рейтингу', response_model=list[ResponseUser])
+async def get_top_developers_router(session: SessionDep, limit: int = Query(ge=1, default=10, le=100)):
+    developers = await session.scalars(
+        select(UsersOrm)
+        .where(UsersOrm.role == 'developer')
+        .options(
+            selectinload(UsersOrm.developer_projects),
+            selectinload(UsersOrm.customer_projects),
+        )
+        .order_by(UsersOrm.rating.desc().nullslast())
+        .limit(limit)
+    )
+    result = developers.all()
+    if len(result) == 0:
+        raise HTTPException(status_code=404, detail='Разработчиков нет!')
+    return result
 
 
 @router.patch('/update/{user_id}', summary='Изменить пользователя', response_model=ResponseUser)
