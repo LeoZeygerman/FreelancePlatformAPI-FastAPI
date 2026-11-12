@@ -42,3 +42,6 @@ class ResponseUserShort(BaseModel):
     username: str
     role: str
     email: str
+    projects_count: int | None = None
+
+    model_config = ConfigDict(from_attributes=True)

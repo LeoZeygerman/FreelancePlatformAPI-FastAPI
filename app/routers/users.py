@@ -1,9 +1,10 @@
 from fastapi import APIRouter, HTTPException, Query
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
 from app.database import SessionDep
 from app.models.users import UsersOrm
 from app.schemas.users import CreateUser, ResponseUser, ResponseUserShort, UpdateUser
+from app.models.reviews import ReviewsOrm
 
 
 router = APIRouter(prefix='/user', tags=['Пользователи'])
@@ -87,6 +88,21 @@ async def get_top_developers_router(session: SessionDep, limit: int = Query(ge=1
     if len(result) == 0:
         raise HTTPException(status_code=404, detail='Разработчиков нет!')
     return result
+
+
+@router.get('/developers', summary='Получить разработчиков по количеству выполненных проектов', response_model=list[ResponseUserShort])
+async def get_developers_by_project_router(session: SessionDep, limit: int=Query(ge=1, default=10, le=100)):
+    query = await session.execute(
+        select(
+            UsersOrm,
+            func.count(ReviewsOrm.reviewee_id).label('projects_count')
+        )
+        .where(UsersOrm.role == 'developer')
+        .group_by(UsersOrm.id)
+        .join(ReviewsOrm, ReviewsOrm.reviewee_id == UsersOrm.id)
+        .order_by(func.count(ReviewsOrm.reviewee_id).desc())
+        .limit(limit)
+    )
 
 
 @router.get('/customers', summary='Получить топ создателей по рейтингу', response_model=list[ResponseUser])
