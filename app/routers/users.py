@@ -91,7 +91,7 @@ async def get_top_developers_router(session: SessionDep, limit: int = Query(ge=1
 
 
 @router.get('/developers', summary='Получить разработчиков по количеству выполненных проектов', response_model=list[ResponseUserShort])
-async def get_developers_by_project_router(session: SessionDep, limit: int=Query(ge=1, default=10, le=100)):
+async def get_developers_by_projects_router(session: SessionDep, limit: int=Query(ge=1, default=10, le=100)):
     query = await session.execute(
         select(
             UsersOrm,
@@ -103,6 +103,10 @@ async def get_developers_by_project_router(session: SessionDep, limit: int=Query
         .order_by(func.count(ReviewsOrm.reviewee_id).desc())
         .limit(limit)
     )
+    developers = query.mappings().all()
+    if len(developers) == 0:
+        raise HTTPException(status_code=404, detail='Разработчиков нет!')
+    return developers
 
 
 @router.get('/customers', summary='Получить топ создателей по рейтингу', response_model=list[ResponseUser])
