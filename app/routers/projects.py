@@ -61,7 +61,7 @@ async def get_all_projects_router(session: SessionDep):
     return result
 
 
-@router.get('/', summary='Получить самые высокооплачиваемые проекты', response_model=ResponseProjectShort)
+@router.get('/', summary='Получить самые высокооплачиваемые проекты', response_model=list[ResponseProjectShort])
 async def get_best_paid_projects_router(session: SessionDep, limit: int = Query(ge=1, default=10, le=100)):
     projects = await session.scalars(
         select(ProjectsOrm)

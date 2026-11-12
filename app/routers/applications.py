@@ -6,9 +6,22 @@ from app.models.applications import ApplicationsOrm
 from app.models.projects import ProjectsOrm
 from app.models.users import UsersOrm
 from app.schemas.applications import CreateApplication, ResponseApplication, UpdateApplication
+from app.schemas.projects import ResponseProjectShort
 
 
 router = APIRouter(prefix='/application', tags=['Заявки'])
+
+
+@router.get('/projects', summary='Свободные проекты для подачи заявки', response_model=list[ResponseProjectShort])
+async def get_free_projects_router(session: SessionDep):
+    projects = await session.scalars(
+        select(ProjectsOrm)
+        .where(ProjectsOrm.developer_id == None)
+    )
+    result = projects.all()
+    if len(result) == 0:
+        raise HTTPException(status_code=404, detail='Проекты не найдены!')
+    return result
 
 
 @router.post('/create', summary='Добавить заявку', response_model=ResponseApplication)
