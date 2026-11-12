@@ -73,7 +73,7 @@ async def get_customer_router(session: SessionDep, user_id: int):
     return customer
 
 
-@router.get('/developers', summary='Получить топ разработчиков по рейтингу', response_model=list[ResponseUser])
+@router.get('/developers/top-rated', summary='Получить топ разработчиков по рейтингу', response_model=list[ResponseUser])
 async def get_top_developers_router(session: SessionDep, limit: int = Query(ge=1, default=10, le=100)):
     developers = await session.scalars(
         select(UsersOrm)
@@ -91,7 +91,7 @@ async def get_top_developers_router(session: SessionDep, limit: int = Query(ge=1
     return result
 
 
-@router.get('/developers', summary='Получить разработчиков по количеству выполненных проектов', response_model=list[ResponseDeveloperStats])
+@router.get('/developers/most-projects', summary='Получить разработчиков по количеству выполненных проектов', response_model=list[ResponseDeveloperStats])
 async def get_developers_by_projects_router(session: SessionDep, limit: int=Query(ge=1, default=10, le=100)):
     query = (
         select(
