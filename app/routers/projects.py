@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
 from app.database import SessionDep
@@ -58,6 +58,19 @@ async def get_all_projects_router(session: SessionDep):
     result = projects.all()
     if len(result) == 0:
         raise HTTPException(status_code=404, detail='Проектов нет!')
+    return result
+
+
+@router.get('/', summary='Получить самые высокооплачиваемые проекты', response_model=ResponseProjectShort)
+async def get_best_paid_projects_router(session: SessionDep, limit: int = Query(ge=1, default=10, le=100)):
+    projects = await session.scalars(
+        select(ProjectsOrm)
+        .order_by(ProjectsOrm.budget.desc())
+        .limit(limit)
+    )
+    result = projects.all()
+    if len(result) == 0:
+        raise HTTPException(status_code=404, detail='Проекты не найдены!')
     return result
 
 
