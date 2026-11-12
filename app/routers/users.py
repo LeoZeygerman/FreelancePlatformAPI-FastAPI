@@ -2,8 +2,9 @@ from fastapi import APIRouter, HTTPException, Query
 from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
 from app.database import SessionDep
+from app.models.projects import ProjectsOrm
 from app.models.users import UsersOrm
-from app.schemas.users import CreateUser, ResponseUser, ResponseUserShort, UpdateUser
+from app.schemas.users import CreateUser, ResponseDeveloperStats, ResponseUser, ResponseUserShort, UpdateUser
 from app.models.reviews import ReviewsOrm
 
 
@@ -90,20 +91,25 @@ async def get_top_developers_router(session: SessionDep, limit: int = Query(ge=1
     return result
 
 
-@router.get('/developers', summary='Получить разработчиков по количеству выполненных проектов', response_model=list[ResponseUserShort])
+@router.get('/developers', summary='Получить разработчиков по количеству выполненных проектов', response_model=list[ResponseDeveloperStats])
 async def get_developers_by_projects_router(session: SessionDep, limit: int=Query(ge=1, default=10, le=100)):
-    query = await session.execute(
+    query = (
         select(
-            UsersOrm,
-            func.count(ReviewsOrm.reviewee_id).label('projects_count')
+            UsersOrm.id,
+            UsersOrm.username,
+            UsersOrm.email,
+            func.count(ProjectsOrm.developer_id).label('projects_count')
         )
-        .where(UsersOrm.role == 'developer')
+        .where(
+            UsersOrm.role == 'developer',
+            ProjectsOrm.status == True
+        )   
         .group_by(UsersOrm.id)
-        .join(ReviewsOrm, ReviewsOrm.reviewee_id == UsersOrm.id)
-        .order_by(func.count(ReviewsOrm.reviewee_id).desc())
+        .join(ProjectsOrm, ProjectsOrm.developer_id == UsersOrm.id)
+        .order_by(func.count(ProjectsOrm.developer_id).desc())
         .limit(limit)
     )
-    developers = query.mappings().all()
+    developers = (await session.execute(query)).mappings().all()
     if len(developers) == 0:
         raise HTTPException(status_code=404, detail='Разработчиков нет!')
     return developers

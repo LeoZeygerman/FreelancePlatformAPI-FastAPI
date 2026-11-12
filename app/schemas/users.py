@@ -42,6 +42,14 @@ class ResponseUserShort(BaseModel):
     username: str
     role: str
     email: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ResponseDeveloperStats(BaseModel):
+    id: int
+    username: str
+    email: EmailStr
     projects_count: int | None = None
 
     model_config = ConfigDict(from_attributes=True)
