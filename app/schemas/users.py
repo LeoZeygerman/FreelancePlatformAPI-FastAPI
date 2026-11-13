@@ -54,3 +54,15 @@ class ResponseDeveloperStats(BaseModel):
     projects_count: int | None = None
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class ResponseCustomerWithProjects(BaseModel):
+    id: int
+    username: str
+    email: EmailStr
+    rating: float
+    project_title: str
+    project_budget: int
+    project_status: bool
+
+    model_config = ConfigDict(from_attributes=True)

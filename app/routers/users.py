@@ -4,7 +4,7 @@ from sqlalchemy.orm import selectinload
 from app.database import SessionDep
 from app.models.projects import ProjectsOrm
 from app.models.users import UsersOrm
-from app.schemas.users import CreateUser, ResponseDeveloperStats, ResponseUser, ResponseUserShort, UpdateUser
+from app.schemas.users import CreateUser, ResponseCustomerWithProjects, ResponseDeveloperStats, ResponseUser, ResponseUserShort, UpdateUser
 from app.models.reviews import ReviewsOrm
 
 
@@ -112,7 +112,7 @@ async def get_developers_by_projects_router(session: SessionDep, limit: int=Quer
     developers = (await session.execute(query)).mappings().all()
     if len(developers) == 0:
         raise HTTPException(status_code=404, detail='Разработчиков нет!')
-    return developers
+    return developers #TODO: при рефакторинге сделать в отдельную функцию, вынести в лукапс, поменяв роль на переменную и все
 
 
 @router.get('/developers/by-reviews', summary='Получить разработчиков отзывам', response_model=list[ResponseDeveloperStats])
@@ -158,6 +158,26 @@ async def get_top_customers_router(session: SessionDep, limit: int = Query(ge=1,
     if len(result) == 0:
         raise HTTPException(status_code=404, detail='Создателей нет!')
     return result
+
+
+@router.get('/customers/by-cost', summary='Получить создателей с самыми дорогостоящими проектами', response_model=list[ResponseCustomerWithProjects])
+async def get_customers_by_cost_router(session: SessionDep, limit: int=Query(ge=1, default=10, le=100)):
+    query = (
+        select(
+            UsersOrm.id,
+            UsersOrm.username,
+            UsersOrm.email,
+            UsersOrm.rating,
+            ProjectsOrm.title.label('project_title'),
+            ProjectsOrm.budget.label('project_budget'),
+            ProjectsOrm.status.label('project_status')
+        )
+        .where(UsersOrm.role == 'customer')
+        .join(ProjectsOrm, ProjectsOrm.customer_id == UsersOrm.id)
+        .group_by(UsersOrm.id)
+        .order_by(ProjectsOrm.budget.desc())
+        .limit(limit)
+    )
 
 
 @router.patch('/update/{user_id}', summary='Изменить пользователя', response_model=ResponseUser)
