@@ -115,10 +115,10 @@ async def get_developers_by_projects_router(session: SessionDep, limit: int=Quer
     return developers
 
 
-@router.get('/developers/by-reviews', summary='Получить разработчиков отзывам', response_model=list[ResponseUserShort])
+@router.get('/developers/by-reviews', summary='Получить разработчиков отзывам', response_model=list[ResponseDeveloperStats])
 async def get_developers_by_reviews_router(session: SessionDep, min_rating: int=Query(ge=1, le=5), max_rating: int=Query(ge=1, le=5), limit: int=Query(ge=1, default=10, le=100)):
     if min_rating > max_rating:
-        raise HTTPException(status_code=404, detail='Ошибка при фильтре рейтинга!')
+        raise HTTPException(status_code=422, detail='Ошибка при фильтре рейтинга!')
     query = (
         select(
             UsersOrm.id,
@@ -128,8 +128,7 @@ async def get_developers_by_reviews_router(session: SessionDep, min_rating: int=
         )
         .where(
             UsersOrm.role == 'developer',
-            UsersOrm.rating >= min_rating,
-            UsersOrm.rating <= max_rating
+            UsersOrm.rating.between(min_rating, max_rating)
         )
         .join(ReviewsOrm, ReviewsOrm.reviewee_id == UsersOrm.id)
         .group_by(UsersOrm.id)
@@ -143,7 +142,7 @@ async def get_developers_by_reviews_router(session: SessionDep, min_rating: int=
     return developers
 
 
-@router.get('/customers', summary='Получить топ создателей по рейтингу', response_model=list[ResponseDeveloperStats])
+@router.get('/customers', summary='Получить топ создателей по рейтингу', response_model=list[ResponseUserShort])
 async def get_top_customers_router(session: SessionDep, limit: int = Query(ge=1, default=10, le=100)):
     customers = await session.scalars(
         select(UsersOrm)
