@@ -50,6 +50,7 @@ class ResponseDeveloperStats(BaseModel):
     id: int
     username: str
     email: EmailStr
+    rating: float | None = None
     projects_count: int | None = None
 
     model_config = ConfigDict(from_attributes=True)
