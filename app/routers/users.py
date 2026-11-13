@@ -179,6 +179,11 @@ async def get_customers_by_cost_router(session: SessionDep, limit: int=Query(ge=
         .limit(limit)
     )
 
+    customers = (await session.execute(query)).mappings().all()
+    if len(customers) == 0:
+        raise HTTPException(status_code=404, detail='Создатели не найдены!')
+    return customers
+
 
 @router.patch('/update/{user_id}', summary='Изменить пользователя', response_model=ResponseUser)
 async def update_user_router(session: SessionDep, user_id: int, data: UpdateUser):
