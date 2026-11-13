@@ -60,7 +60,7 @@ class ResponseCustomerWithProjects(BaseModel):
     id: int
     username: str
     email: EmailStr
-    rating: float
+    rating: float | None = None
     project_title: str
     project_budget: int
     project_status: bool

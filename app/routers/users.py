@@ -174,7 +174,6 @@ async def get_customers_by_cost_router(session: SessionDep, limit: int=Query(ge=
         )
         .where(UsersOrm.role == 'customer')
         .join(ProjectsOrm, ProjectsOrm.customer_id == UsersOrm.id)
-        .group_by(UsersOrm.id)
         .order_by(ProjectsOrm.budget.desc())
         .limit(limit)
     )
