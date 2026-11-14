@@ -36,7 +36,7 @@ class ResponseApplicationByDeveloperRating(BaseModel):
     project_budget: float
     developer_id: int
     developer_name: str
-    developer_rating: float        
+    developer_rating: float | None        
 
 
 class UpdateApplication(BaseModel):

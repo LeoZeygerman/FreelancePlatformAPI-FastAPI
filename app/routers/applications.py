@@ -82,14 +82,17 @@ async def get_applications_by_rating_router(session: SessionDep, limit: int=Quer
             UsersOrm.rating.label('developer_rating')
         )
         .where(
-            ApplicationsOrm.developer_id is not None,
+            ApplicationsOrm.developer_id.is_not(None),
             UsersOrm.role == 'developer'
         )
         .join(
-            ProjectsOrm, ProjectsOrm.id == ApplicationsOrm.project_id,
-            UsersOrm, UsersOrm.id == ApplicationsOrm.developer_id
+            ProjectsOrm, ProjectsOrm.id == ApplicationsOrm.project_id
         )
-        .order_by(UsersOrm.rating.desc())
+        .join(
+            UsersOrm, UsersOrm.id == ApplicationsOrm.developer_id
+
+        )
+        .order_by(UsersOrm.rating.desc().nullslast())
         .limit(limit)
     )
     applications = (await session.execute(query)).mappings().all()
