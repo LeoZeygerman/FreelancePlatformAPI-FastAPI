@@ -84,6 +84,7 @@ async def get_projects_by_applications_router(session: SessionDep, limit: int=Qu
             func.count(ApplicationsOrm.id).label('applications')
         )
         .outerjoin(ApplicationsOrm, ApplicationsOrm.project_id == ProjectsOrm.id)
+        .group_by(ProjectsOrm.id)
         .order_by(func.count(ApplicationsOrm.id).desc())
         .limit(limit)
     )
