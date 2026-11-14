@@ -69,6 +69,9 @@ async def get_application_by_id(session: SessionDep, application_id: int):
     return application
 
 
+@router.get('/by-developers-reviews')
+
+
 @router.patch('/update/{application_id}', summary='Отредактировать заявку', response_model=ResponseApplication)
 async def update_application_router(session: SessionDep, application_id: int, developer_id: int, data: UpdateApplication):
     application = await session.scalar(

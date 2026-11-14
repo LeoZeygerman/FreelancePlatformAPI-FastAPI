@@ -27,7 +27,16 @@ class ResponseApplication(BaseModel):
     developer: ResponseDeveloperForApplication
     cover_letter: str
 
-    model_config = ConfigDict(from_attributes=True)    
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ResponseApplicationByDeveloperRating(BaseModel):
+    project_id: int
+    project_title: str
+    project_budget: float
+    developer_id: int
+    developer_name: str
+    developer_rating: float        
 
 
 class UpdateApplication(BaseModel):
