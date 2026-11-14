@@ -36,6 +36,7 @@ async def create_task_router(session: SessionDep, customer_id: int, task: Create
         project = project,
         task = task.task,
         description = task.description,
+        priority = task.priority,
         deadline = task.deadline,
     )
     session.add(new_task)

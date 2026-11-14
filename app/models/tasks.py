@@ -14,6 +14,7 @@ class TasksOrm(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     task: Mapped[str]
     description: Mapped[str]
+    priority: Mapped[str]
     deadline: Mapped[date]
     status: Mapped[bool] = mapped_column(default=False)
     project_id: Mapped[int] = mapped_column(ForeignKey('projects.id', ondelete='CASCADE'))

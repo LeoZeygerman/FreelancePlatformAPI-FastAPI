@@ -34,6 +34,7 @@ class ResponseProjectForTask(BaseModel):
 class ResponseTask(BaseModel):
     task: str
     description: str
+    priority: str
     deadline: date
     status: bool
     project: ResponseProjectForTask
@@ -44,6 +45,7 @@ class ResponseTask(BaseModel):
 class UpdateTask(BaseModel):
     task: str | None = Field(default=None, max_length=50)
     description: str | None = Field(default=None, max_length=300)
+    priority: TaskPriority | None = None
     deadline: date | None = None
     status: bool | None = None
 
