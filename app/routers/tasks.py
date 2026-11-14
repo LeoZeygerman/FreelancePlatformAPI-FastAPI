@@ -5,7 +5,7 @@ from app.database import SessionDep
 from app.models.projects import ProjectsOrm
 from app.models.tasks import TasksOrm
 from app.models.users import UsersOrm
-from app.schemas.tasks import CreateTask, ResponseTask, UpdateTask
+from app.schemas.tasks import CreateTask, ResponseTask, TaskPriority, UpdateTask
 
 
 router = APIRouter(prefix='/task', tags=['Задачи проекта'])
@@ -59,14 +59,14 @@ async def get_task_by_id(session: SessionDep, task_id: int):
 
 
 @router.get('/{project_id}/by-priority', summary='Получить задачи по приоритету', response_model=list[ResponseTask])
-async def get_tasks_by_priority(session: SessionDep, project_id: int, priority: str):
+async def get_tasks_by_priority(session: SessionDep, project_id: int, priority: TaskPriority):
     tasks = await session.scalars(
         select(TasksOrm)
         .options(
             selectinload(TasksOrm.project)
         )
         .where(
-            TasksOrm.priority == priority,
+            TasksOrm.priority == priority.value,
             TasksOrm.project_id == project_id
         )
     )
