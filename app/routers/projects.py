@@ -24,6 +24,7 @@ async def create_project_router(session: SessionDep, project: CreateProject, new
         project_task = TasksOrm(
             task = new_task.task,
             description = new_task.description,
+            priority = new_task.priority,
             deadline = new_task.deadline
         )
     )

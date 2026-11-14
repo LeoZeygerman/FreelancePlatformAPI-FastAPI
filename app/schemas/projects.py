@@ -1,10 +1,12 @@
 from datetime import date
 from pydantic import BaseModel, ConfigDict, Field, field_validator
+from app.schemas.tasks import TaskPriority
 
 
 class CreateTaskForProject(BaseModel):
     task: str
     description: str = Field(max_length=250)
+    priority: TaskPriority
     deadline: date
 
     @field_validator('deadline')
