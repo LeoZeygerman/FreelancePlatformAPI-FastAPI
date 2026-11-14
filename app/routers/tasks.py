@@ -58,6 +58,25 @@ async def get_task_by_id(session: SessionDep, task_id: int):
     return task
 
 
+@router.get('/{project_id}/by-priority', summary='Получить задачи по приоритету', response_model=list[ResponseTask])
+async def get_tasks_by_priority(session: SessionDep, project_id: int, priority: str):
+    tasks = await session.scalars(
+        select(TasksOrm)
+        .options(
+            selectinload(TasksOrm.project)
+        )
+        .where(
+            TasksOrm.priority == priority,
+            TasksOrm.project_id == project_id
+        )
+    )
+
+    result = tasks.all()
+    if len(result) == 0:
+        raise HTTPException(status_code=404, detail='Задачи не найдены!')
+    return result
+
+
 @router.patch('/update/{task_id}', summary='Обновить задачу', response_model=ResponseTask)
 async def update_task_router(session: SessionDep, task_id: int, data: UpdateTask):
     task = await session.scalar(
