@@ -1,11 +1,19 @@
 from datetime import date
 from pydantic import BaseModel, Field, field_validator, ConfigDict
+from enum import Enum
+
+
+class TaskPriority(str, Enum):
+    LOW = 'low'
+    MID = 'mid'
+    HIGH = 'high'
 
 
 class CreateTask(BaseModel):
     project_id: int
     task: str = Field(max_length=50)
     description: str = Field(max_length=300)
+    priority: TaskPriority
     deadline: date
 
     @field_validator('deadline')
