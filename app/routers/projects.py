@@ -61,7 +61,7 @@ async def get_all_projects_router(session: SessionDep):
     return result
 
 
-@router.get('/', summary='Получить самые высокооплачиваемые проекты', response_model=list[ResponseProjectShort])
+@router.get('/by-paid', summary='Получить самые высокооплачиваемые проекты', response_model=list[ResponseProjectShort])
 async def get_best_paid_projects_router(session: SessionDep, limit: int = Query(ge=1, default=10, le=100)):
     projects = await session.scalars(
         select(ProjectsOrm)
@@ -72,6 +72,9 @@ async def get_best_paid_projects_router(session: SessionDep, limit: int = Query(
     if len(result) == 0:
         raise HTTPException(status_code=404, detail='Проекты не найдены!')
     return result
+
+
+@router.get('/by-applications', summary='Получить проекты по количеству заявок', response_model=list[])
 
 
 @router.patch('/update/{project_id}', summary='Обновить проект', response_model=ResponseProject)
