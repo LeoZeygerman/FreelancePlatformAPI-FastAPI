@@ -1,11 +1,11 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from app.database import SessionDep
 from app.models.applications import ApplicationsOrm
 from app.models.projects import ProjectsOrm
 from app.models.users import UsersOrm
-from app.schemas.applications import CreateApplication, ResponseApplication, UpdateApplication
+from app.schemas.applications import CreateApplication, ResponseApplication, ResponseApplicationByDeveloperRating, UpdateApplication
 from app.schemas.projects import ResponseProjectShort
 
 
@@ -69,7 +69,33 @@ async def get_application_by_id(session: SessionDep, application_id: int):
     return application
 
 
-@router.get('/by-developers-reviews')
+@router.get('/by-developers-rating', summary='Показать заявки по рейтингу разработчиков', response_model=list[ResponseApplicationByDeveloperRating])
+async def get_applications_by_rating_router(session: SessionDep, limit: int=Query(ge=1, default=10, le=100)):
+    query = (
+        select(
+            ApplicationsOrm.project_id,
+            ProjectsOrm.title.label('project_title'),
+            ProjectsOrm.budget.label('project_budget'),
+            ApplicationsOrm.developer_id,
+            UsersOrm.username.label('developer_name'),
+            UsersOrm.role,
+            UsersOrm.rating.label('developer_rating')
+        )
+        .where(
+            ApplicationsOrm.developer_id is not None,
+            UsersOrm.role == 'developer'
+        )
+        .join(
+            ProjectsOrm, ProjectsOrm.id == ApplicationsOrm.project_id,
+            UsersOrm, UsersOrm.id == ApplicationsOrm.developer_id
+        )
+        .order_by(UsersOrm.rating.desc())
+        .limit(limit)
+    )
+    applications = (await session.execute(query)).mappings().all()
+    if len(applications) == 0:
+        raise HTTPException(status_code=404, detail='Заявки не найдены!')
+    return applications
 
 
 @router.patch('/update/{application_id}', summary='Отредактировать заявку', response_model=ResponseApplication)
