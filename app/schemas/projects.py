@@ -60,7 +60,7 @@ class ResponseProjectShort(BaseModel):
     status: bool
 
 
-class ResponseProjectWithApplications(BaseModel):
+class ResponseProjectWithApplicationCount(BaseModel):
     project_id: int
     project_title: str
     applications: int | None = None

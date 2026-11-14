@@ -2,11 +2,12 @@ from fastapi import APIRouter, HTTPException, Query
 from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
 from app.database import SessionDep
+from app.models.applications import ApplicationsOrm
 from app.models.projects import ProjectsOrm
 from app.models.reviews import ReviewsOrm
 from app.models.tasks import TasksOrm
 from app.models.users import UsersOrm
-from app.schemas.projects import CreateProject, ResponseProject, CreateTaskForProject, ResponseProjectShort, UpdateProject
+from app.schemas.projects import CreateProject, ResponseProject, CreateTaskForProject, ResponseProjectShort, UpdateProject, ResponseProjectWithApplicationCount
 from app.schemas.reviews import CreateReview
 
 
@@ -74,7 +75,22 @@ async def get_best_paid_projects_router(session: SessionDep, limit: int = Query(
     return result
 
 
-@router.get('/by-applications', summary='Получить проекты по количеству заявок', response_model=list[])
+@router.get('/by-applications', summary='Получить проекты по количеству заявок', response_model=list[ResponseProjectWithApplicationCount])
+async def get_projects_by_applications_router(session: SessionDep, limit: int=Query(ge=1, default=10, le=100)):
+    query = (
+        select(
+            ProjectsOrm.id.label('project_id'),
+            ProjectsOrm.title.label('project_title'),
+            func.count(ApplicationsOrm.id).label('applications')
+        )
+        .outerjoin(ApplicationsOrm, ApplicationsOrm.project_id == ProjectsOrm.id)
+        .order_by(func.count(ApplicationsOrm.id).desc())
+        .limit(limit)
+    )
+    projects = (await session.execute(query)).mappings().all()
+    if len(projects) == 0:
+        raise HTTPException(status_code=404, detail='Проекты не найдены!')
+    return projects
 
 
 @router.patch('/update/{project_id}', summary='Обновить проект', response_model=ResponseProject)
