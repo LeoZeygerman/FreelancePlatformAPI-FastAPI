@@ -19,6 +19,6 @@ class TasksOrm(Base):
     status: Mapped[bool] = mapped_column(default=False)
     project_id: Mapped[int] = mapped_column(ForeignKey('projects.id', ondelete='CASCADE'))
 
-    project: Mapped['ProjectsOrm'] = relationship(
+    project: Mapped['ProjectsOrm'] = relationship(        
         back_populates='project_task'
     )

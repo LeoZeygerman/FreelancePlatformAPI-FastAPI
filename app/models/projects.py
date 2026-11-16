@@ -37,7 +37,9 @@ class ProjectsOrm(Base):
     )
 
     project_task: Mapped[list['TasksOrm']] = relationship(
-        back_populates='project'
+        back_populates='project',
+        cascade="all, delete-orphan"
+
     )
 
     developer_applications: Mapped[list['ApplicationsOrm']] = relationship(

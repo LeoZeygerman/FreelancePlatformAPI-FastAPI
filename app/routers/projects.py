@@ -14,27 +14,7 @@ from app.schemas.reviews import CreateReview
 router = APIRouter(prefix='/project', tags=['Проекты'])
 
 
-@router.post('/create', summary='Создать проект', response_model=ResponseProject)
-async def create_project_router(session: SessionDep, project: CreateProject, new_task: CreateTaskForProject):
-    new_project = ProjectsOrm(
-        title = project.title,
-        description = project.description,
-        budget = project.budget,
-        customer_id = project.customer_id,
-        project_task = TasksOrm(
-            task = new_task.task,
-            description = new_task.description,
-            priority = new_task.priority,
-            deadline = new_task.deadline
-        )
-    )
-    session.add(new_project)
-    await session.commit()
-    await session.flush()
-    return new_project
-
-
-@router.get('/{project_id}', summary='Найти проект по ID', response_model=ResponseProject)
+@router.get('/get-one/{project_id}', summary='Найти проект по ID', response_model=ResponseProject)
 async def get_project_by_id_router(session: SessionDep, project_id: int):
     project = await session.scalar(
         select(ProjectsOrm)
@@ -50,6 +30,29 @@ async def get_project_by_id_router(session: SessionDep, project_id: int):
     if project is None:
         raise HTTPException(status_code=404, detail='Проект не найден!')
     return project
+
+
+@router.post('/create', summary='Создать проект', response_model=ResponseProject)
+async def create_project_router(session: SessionDep, project: CreateProject):
+    new_project = ProjectsOrm(
+        title = project.title,
+        description = project.description,
+        budget = project.budget,
+        customer_id = project.customer_id,
+        project_task = [
+            TasksOrm(
+            task = task.task,
+            description = task.description,
+            priority = task.priority,
+            deadline = task.deadline
+            )
+            for task in project.project_task
+        ]
+    )
+    session.add(new_project)
+    await session.commit()
+    await session.flush()
+    return await get_project_by_id_router(session, new_project.id)
 
 
 @router.get('/all', summary='Получить все проекты', response_model=list[ResponseProjectShort])
@@ -165,6 +168,8 @@ async def delete_project_router(session: SessionDep, project_id: int):
             selectinload(ProjectsOrm.developer_applications)
         )
     )
+    if project is None:
+        raise HTTPException(status_code=404, detail='Проект не найден!')
     await session.delete(project)
     await session.commit()
     return {'msg': f'Проект {project.title} удален!'}

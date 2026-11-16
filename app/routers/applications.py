@@ -54,7 +54,7 @@ async def create_application_router(session: SessionDep, application: CreateAppl
     return new_application
 
 
-@router.get('/{application_id}', summary='Найти заявку', response_model=ResponseApplication)
+@router.get('/get-one/{application_id}', summary='Найти заявку', response_model=ResponseApplication)
 async def get_application_by_id(session: SessionDep, application_id: int):
     application = await session.scalar(
         select(ApplicationsOrm)
