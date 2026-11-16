@@ -165,7 +165,6 @@ async def delete_project_router(session: SessionDep, project_id: int):
             selectinload(ProjectsOrm.developer_applications)
         )
     )
-    
     await session.delete(project)
     await session.commit()
     return {'msg': f'Проект {project.title} удален!'}
