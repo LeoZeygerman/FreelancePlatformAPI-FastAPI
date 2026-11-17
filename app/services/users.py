@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.projects import ProjectsOrm
 from app.models.reviews import ReviewsOrm
 from app.models.users import UsersOrm
-from app.schemas.users import CreateUser
+from app.schemas.users import CreateUser, UpdateUser
 from sqlalchemy.orm import selectinload
 from app.services.lookups import get_user_by_id
 
@@ -147,6 +147,15 @@ async def get_customers_by_cost(session: AsyncSession, limit: int):
     )
     result = customers.mappings().all()
     return result
+
+
+async def update_user(session: AsyncSession, user_id: int, data: UpdateUser):
+    user = await get_user_by_id(session, user_id)
+    changes = data.model_dump(exclude_unset=True)
+    for key, value in changes.items():
+        setattr(user, key, value)
+    await session.commit()
+    return await get_user_by_id(session, user_id)
 
 
 
