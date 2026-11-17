@@ -1,6 +1,7 @@
 from pydantic import EmailStr
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from app.models.projects import ProjectsOrm
 from app.models.users import UsersOrm
 from app.schemas.users import CreateUser
 from sqlalchemy.orm import selectinload
@@ -66,6 +67,43 @@ async def get_user_by_rating(session: AsyncSession, limit: int, role: str):
     return result
 
 
+async def get_users_by_projects(session: AsyncSession, limit: int, role: str):
+    if role == 'developer':
+        users = await session.execute(
+            select(
+                UsersOrm.id,
+                UsersOrm.username,
+                UsersOrm.email,
+                func.count(ProjectsOrm.developer_id).label('projects_count')
+            )
+            .where(
+                UsersOrm.role == 'developer',
+                ProjectsOrm.status == True
+            )
+            .group_by(UsersOrm.id)
+            .join(ProjectsOrm, ProjectsOrm.developer_id == UsersOrm.id)
+            .order_by(func.count(ProjectsOrm.developer_id).desc())
+            .limit(limit)
+        )
+    elif role == 'customer':
+        users = await session.execute(
+            select(
+                UsersOrm.id,
+                UsersOrm.username,
+                UsersOrm.email,
+                func.count(ProjectsOrm.customer_id).label('projects_count')
+            )
+            .where(
+                UsersOrm.role == 'customer',
+                ProjectsOrm.status == True
+            )
+            .group_by(UsersOrm.id)
+            .join(ProjectsOrm, ProjectsOrm.customer_id == UsersOrm.id)
+            .order_by(func.count(ProjectsOrm.customer_id).desc())
+            .limit(limit)
+        )
+    result = users.mappings().all()
+    return result
 
 
 
