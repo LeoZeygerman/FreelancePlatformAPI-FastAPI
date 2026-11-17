@@ -158,4 +158,11 @@ async def update_user(session: AsyncSession, user_id: int, data: UpdateUser):
     return await get_user_by_id(session, user_id)
 
 
+async def delete_user(session: AsyncSession, user_id: int):
+    user = await get_user_by_id(session, user_id)
+    await session.delete(user)
+    await session.commit()
+    return {'msg': f'Пользователь {user.username} удален!'}
+
+
 
