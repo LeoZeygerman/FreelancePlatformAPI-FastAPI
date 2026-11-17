@@ -141,7 +141,12 @@ async def get_customers_by_cost(session: AsyncSession, limit: int):
             ProjectsOrm.status.label('project_status')
         )
         .where(UsersOrm.role == 'customer')
+        .join(ProjectsOrm, ProjectsOrm.customer_id == UsersOrm.id)
+        .order_by(ProjectsOrm.budget.desc())
+        .limit(limit)
     )
+    result = customers.mappings().all()
+    return result
 
 
 
