@@ -2,12 +2,13 @@ from pydantic import EmailStr
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.projects import ProjectsOrm
+from app.models.reviews import ReviewsOrm
 from app.models.users import UsersOrm
 from app.schemas.users import CreateUser
 from sqlalchemy.orm import selectinload
 from app.services.lookups import get_user_by_id
 
-#TODO сделать оброботчик ошибок
+#TODO сделать оброботчик ошибок и типизацию
 
 async def create_user(session: AsyncSession, user: CreateUser):
     new_user = UsersOrm(
@@ -104,6 +105,43 @@ async def get_users_by_projects(session: AsyncSession, limit: int, role: str):
         )
     result = users.mappings().all()
     return result
+
+
+async def get_developers_by_reviews(session: AsyncSession, min_rating: int, max_rating: int, limit: int):
+    #TODO сделать проверку рейтинга
+    developers = await session.execute(
+        select(
+            UsersOrm.id,
+            UsersOrm.username,
+            UsersOrm.email,
+            func.count(ReviewsOrm.reviewee_id).label('projects_count')
+        )
+        .where(
+            UsersOrm.role == 'developer',
+            UsersOrm.rating.between(min_rating, max_rating)
+        )
+        .join(ReviewsOrm, ReviewsOrm.reviewee_id == UsersOrm.id)
+        .group_by(UsersOrm.id)
+        .order_by(func.count(ReviewsOrm.reviewee_id).desc())
+        .limit(limit)
+    )
+    result = developers.mappings().all()
+    return result
+
+
+async def get_customers_by_cost(session: AsyncSession, limit: int):
+    customers = await session.execute(
+        select(
+            UsersOrm.id,
+            UsersOrm.username,
+            UsersOrm.email,
+            UsersOrm.rating,
+            ProjectsOrm.title.label('project_title'),
+            ProjectsOrm.budget.label('project_budget'),
+            ProjectsOrm.status.label('project_status')
+        )
+        .where(UsersOrm.role == 'customer')
+    )
 
 
 
