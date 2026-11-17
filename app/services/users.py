@@ -51,3 +51,19 @@ async def get_user_by_id(session: AsyncSession, user_id: int):
     return user
 
 
+async def get_developers_by_rating(session: AsyncSession, limit: int):
+    developers = await session.execute(
+        select(UsersOrm)
+        .where(UsersOrm.role == 'developer')
+        .options(
+            selectinload(UsersOrm.customer_projects),
+            selectinload(UsersOrm.developer_projects)
+        )
+        .order_by(UsersOrm.rating.desc().nullslast())
+        .limit(limit)
+    )
+
+    result = developers.mappings().all()
+    return result
+
+
