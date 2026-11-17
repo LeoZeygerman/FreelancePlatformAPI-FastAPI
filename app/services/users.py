@@ -6,7 +6,6 @@ from app.models.reviews import ReviewsOrm
 from app.models.users import UsersOrm
 from app.schemas.users import CreateUser, UpdateUser
 from sqlalchemy.orm import selectinload
-from app.services.lookups import get_user_by_id
 
 #TODO сделать оброботчик ошибок и типизацию
 
@@ -53,10 +52,13 @@ async def get_user_by_id(session: AsyncSession, user_id: int):
     return user
 
 
-async def get_user_by_rating(session: AsyncSession, limit: int, role: str):
-    users = await session.execute(
+async def get_user_by_rating(session: AsyncSession, limit: int, role: str, min_rating: int, max_rating: int):
+    users = await session.scalars(
         select(UsersOrm)
-        .where(UsersOrm.role == role)
+        .where(
+            UsersOrm.role == role, 
+            UsersOrm.rating.between(min_rating, max_rating)
+        )
         .options(
             selectinload(UsersOrm.customer_projects),
             selectinload(UsersOrm.developer_projects)
@@ -64,8 +66,7 @@ async def get_user_by_rating(session: AsyncSession, limit: int, role: str):
         .order_by(UsersOrm.rating.desc().nullslast())
         .limit(limit)
     )
-    result = users.mappings().all()
-    return result
+    return users.all()
 
 
 async def get_users_by_projects(session: AsyncSession, limit: int, role: str):
@@ -107,22 +108,22 @@ async def get_users_by_projects(session: AsyncSession, limit: int, role: str):
     return result
 
 
-async def get_developers_by_reviews(session: AsyncSession, min_rating: int, max_rating: int, limit: int):
-    #TODO сделать проверку рейтинга
+async def get_developers_by_project_count(session: AsyncSession, limit: int):
+    #TODO сделать проверку 
     developers = await session.execute(
         select(
             UsersOrm.id,
             UsersOrm.username,
             UsersOrm.email,
-            func.count(ReviewsOrm.reviewee_id).label('projects_count')
+            func.count(ProjectsOrm.developer_id).label('projects_count')
         )
         .where(
             UsersOrm.role == 'developer',
-            UsersOrm.rating.between(min_rating, max_rating)
+            ProjectsOrm.status == True
         )
-        .join(ReviewsOrm, ReviewsOrm.reviewee_id == UsersOrm.id)
+        .join(ProjectsOrm, ProjectsOrm.developer_id == UsersOrm.id)
         .group_by(UsersOrm.id)
-        .order_by(func.count(ReviewsOrm.reviewee_id).desc())
+        .order_by(func.count(ProjectsOrm.developer_id).desc())
         .limit(limit)
     )
     result = developers.mappings().all()
