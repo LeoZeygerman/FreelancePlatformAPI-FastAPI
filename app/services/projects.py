@@ -114,7 +114,7 @@ async def add_mark(session: AsyncSession, review: CreateReview, project_id: int)
         .where(ReviewsOrm.reviewee_id == review.reviewee_id)
     )
 
-    user = await get_user_by_id
+    user = await get_user_by_id(session, review.reviewee_id)
     user.rating = update_rating
 
     await session.commit()
