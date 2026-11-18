@@ -58,6 +58,13 @@ async def update_tasks(session: AsyncSession, task_id: int, data: UpdateTask):
     changes = data.model_dump(exclude_unset=True)
     for key, value in changes.items():
         setattr(task, key, value)
-        
+
     await session.commit()
     return task
+
+
+async def delete_task(session: AsyncSession, task_id: int):
+    task = await get_task_by_id(session, task_id)
+    await session.delete(task)
+    await session.commit()
+    return {'msg': 'Задача удалена!'}
