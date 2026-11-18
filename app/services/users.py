@@ -7,6 +7,8 @@ from app.models.users import UsersOrm
 from app.schemas.users import CreateUser, UpdateUser
 from sqlalchemy.orm import selectinload
 
+from app.services.lookups import get_user_by_id
+
 #TODO сделать оброботчик ошибок и типизацию
 
 async def create_user(session: AsyncSession, user: CreateUser):
@@ -38,18 +40,6 @@ async def get_all_users(session: AsyncSession):
     )
     result = users.all()
     return result
-
-
-async def get_user_by_id(session: AsyncSession, user_id: int):
-    user = await session.scalar(
-        select(UsersOrm)
-        .where(UsersOrm.id == user_id)
-        .options(
-            selectinload(UsersOrm.developer_projects),
-            selectinload(UsersOrm.customer_projects)
-        )
-    )
-    return user
 
 
 async def get_user_by_rating(session: AsyncSession, limit: int, role: str, min_rating: int, max_rating: int):

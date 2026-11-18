@@ -5,7 +5,7 @@ from app.models.applications import ApplicationsOrm
 from app.models.projects import ProjectsOrm
 from app.models.reviews import ReviewsOrm
 from app.models.tasks import TasksOrm
-from app.models.users import UsersOrm
+from app.services.lookups import get_user_by_id
 from app.schemas.projects import CreateProject, UpdateProject
 from app.schemas.reviews import CreateReview
 
@@ -114,10 +114,7 @@ async def add_mark(session: AsyncSession, review: CreateReview, project_id: int)
         .where(ReviewsOrm.reviewee_id == review.reviewee_id)
     )
 
-    user = await session.scalar(
-        select(UsersOrm)
-        .where(UsersOrm.id == review.reviewee_id)
-    )
+    user = await get_user_by_id
     user.rating = update_rating
 
     await session.commit()
