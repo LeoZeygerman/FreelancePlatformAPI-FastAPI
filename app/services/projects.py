@@ -48,3 +48,13 @@ async def get_all_projects(session: AsyncSession):
     )
     result = projects.all()
     return result
+
+
+async def get_best_paid_projects(session: AsyncSession, limit: int):
+    projects = await session.scalars(
+        select(ProjectsOrm)
+        .order_by(ProjectsOrm.budget.desc())
+        .limit(limit)
+    )
+    result = projects.all()
+    return result
