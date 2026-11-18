@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from app.models.projects import ProjectsOrm
 from app.models.tasks import TasksOrm
-from app.schemas.tasks import CreateTask
+from app.schemas.tasks import CreateTask, UpdateTask
 from app.services.lookups import get_user_by_id
 
 
@@ -50,3 +50,14 @@ async def get_tasks_by_priority(session: AsyncSession, project_id: int, priority
     )
     result = tasks.all()
     return result
+
+
+async def update_tasks(session: AsyncSession, task_id: int, data: UpdateTask):
+    task = await get_task_by_id(session, task_id)
+
+    changes = data.model_dump(exclude_unset=True)
+    for key, value in changes.items():
+        setattr(task, key, value)
+        
+    await session.commit()
+    return task
