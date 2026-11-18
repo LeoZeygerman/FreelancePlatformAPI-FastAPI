@@ -7,7 +7,7 @@ from app.models.projects import ProjectsOrm
 from app.models.reviews import ReviewsOrm
 from app.models.tasks import TasksOrm
 from app.models.users import UsersOrm
-from app.schemas.projects import CreateProject, ResponseProject, CreateTaskForProject, ResponseProjectShort, UpdateProject, ResponseProjectWithApplicationCount
+from app.schemas.projects import CreateProject, ResponseProject, ResponseProjectShort, UpdateProject, ResponseProjectWithApplicationCount
 from app.schemas.reviews import CreateReview
 
 
