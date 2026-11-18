@@ -3,8 +3,11 @@ from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.applications import ApplicationsOrm
 from app.models.projects import ProjectsOrm
+from app.models.reviews import ReviewsOrm
 from app.models.tasks import TasksOrm
+from app.models.users import UsersOrm
 from app.schemas.projects import CreateProject, UpdateProject
+from app.schemas.reviews import CreateReview
 
 
 async def create_project(session: AsyncSession, project: CreateProject):
@@ -92,3 +95,29 @@ async def update_project(session: AsyncSession, project_id: int, data: UpdatePro
     for key, value in changes.items():
         setattr(project, key, value)
     return await get_project_by_id(session, project.id)
+
+
+async def add_mark(session: AsyncSession, review: CreateReview, project_id: int):
+    project = await get_project_by_id(session, project_id)
+
+    new_mark = ReviewsOrm(
+        project_id=project_id,
+        reviewer_id=review.reviewer_id,
+        reviewee_id=review.reviewee_id,
+        rating=review.rating
+    )
+    session.add(new_mark)
+    await session.flush()
+
+    update_rating = await session.scalar(
+        select(func.avg(ReviewsOrm.rating))
+        .where(ReviewsOrm.reviewee_id == review.reviewee_id)
+    )
+
+    user = await session.scalar(
+        select(UsersOrm)
+        .where(UsersOrm.id == review.reviewee_id)
+    )
+    user.rating = update_rating
+    
+    await session.commit()
