@@ -119,5 +119,13 @@ async def add_mark(session: AsyncSession, review: CreateReview, project_id: int)
         .where(UsersOrm.id == review.reviewee_id)
     )
     user.rating = update_rating
-    
+
     await session.commit()
+    return {'msg': f'Оценка пользователю {user.username} успешно выставлена!'}
+
+
+async def delete_project(session: AsyncSession, project_id: int):
+    project = await get_project_by_id(session, project_id)
+    await session.delete(project)
+    await session.commit()
+    return {'msg': f'Проект {project.title} удален!'}
