@@ -1,3 +1,5 @@
+from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.projects import ProjectsOrm
 from app.models.tasks import TasksOrm
@@ -22,3 +24,19 @@ async def create_project(session: AsyncSession, project: CreateProject):
     )
     session.add(new_project)
     await session.commit()
+    return await get_project_by_id(session, new_project.id)
+
+
+async def get_project_by_id(session: AsyncSession, project_id: int):
+    project = await session.scalar(
+        select(ProjectsOrm)
+        .where(ProjectsOrm.id == project_id)
+        .options(
+            selectinload(ProjectsOrm.customer),
+            selectinload(ProjectsOrm.developer),
+            selectinload(ProjectsOrm.payment_status),
+            selectinload(ProjectsOrm.project_task),
+            selectinload(ProjectsOrm.developer_applications)
+        )
+    )
+    return project
