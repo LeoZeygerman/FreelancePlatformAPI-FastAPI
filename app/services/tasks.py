@@ -35,3 +35,18 @@ async def get_task_by_id(session: AsyncSession, task_id: int):
         )
     )
     return task
+
+
+async def get_tasks_by_priority(session: AsyncSession, project_id: int, priority: str):
+    tasks = await session.scalars(
+        select(TasksOrm)
+        .options(
+            selectinload(TasksOrm.project)
+        )
+        .where(
+            TasksOrm.priority == priority.value,
+            TasksOrm.project_id == project_id
+        )
+    )
+    result = tasks.all()
+    return result
