@@ -40,3 +40,11 @@ async def get_project_by_id(session: AsyncSession, project_id: int):
         )
     )
     return project
+
+
+async def get_all_projects(session: AsyncSession):
+    projects = await session.scalars(
+        select(ProjectsOrm)
+    )
+    result = projects.all()
+    return result
