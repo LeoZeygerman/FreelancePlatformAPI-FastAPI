@@ -1,6 +1,7 @@
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
+from app.models.applications import ApplicationsOrm
 from app.models.projects import ProjectsOrm
 from app.models.tasks import TasksOrm
 from app.schemas.projects import CreateProject
@@ -57,4 +58,20 @@ async def get_best_paid_projects(session: AsyncSession, limit: int):
         .limit(limit)
     )
     result = projects.all()
+    return result
+
+
+async def get_projects_by_applications(session: AsyncSession, limit: int):
+    projects = await session.execute(
+        select(
+            ProjectsOrm.id.label('project_id'),
+            ProjectsOrm.title.label('project_title'),
+            func.count(ApplicationsOrm.id).label('applications')
+        )
+        .outerjoin(ApplicationsOrm, ApplicationsOrm.project_id == ProjectsOrm.id)
+        .group_by(ProjectsOrm.id)
+        .order_by(func.count(ApplicationsOrm.id).desc())
+        .limit(limit)
+    )
+    result = projects.mappings().all()
     return result
