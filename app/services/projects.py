@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.applications import ApplicationsOrm
 from app.models.projects import ProjectsOrm
 from app.models.tasks import TasksOrm
-from app.schemas.projects import CreateProject
+from app.schemas.projects import CreateProject, UpdateProject
 
 
 async def create_project(session: AsyncSession, project: CreateProject):
@@ -75,3 +75,20 @@ async def get_projects_by_applications(session: AsyncSession, limit: int):
     )
     result = projects.mappings().all()
     return result
+
+
+async def update_project(session: AsyncSession, project_id: int, data: UpdateProject):
+    project = await session.scalar(
+        select(ProjectsOrm)
+        .where(ProjectsOrm.id == project_id)
+        .options(
+            selectinload(ProjectsOrm.developer),
+            selectinload(ProjectsOrm.customer),
+            selectinload(ProjectsOrm.project_task)  
+        )
+    )
+
+    changes = data.model_dump(exclude_unset=True)
+    for key, value in changes.items():
+        setattr(project, key, value)
+    return await get_project_by_id(session, project.id)
