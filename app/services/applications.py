@@ -4,8 +4,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.applications import ApplicationsOrm
 from app.models.projects import ProjectsOrm
 from app.models.users import UsersOrm
-from app.schemas.applications import CreateApplication
-from app.services.lookups import get_project_by_id
+from app.schemas.applications import CreateApplication, UpdateApplication
+from app.services.lookups import get_project_by_id, get_user_by_id
 
 
 async def create_application(session: AsyncSession, application: CreateApplication):
@@ -70,3 +70,16 @@ async def get_applications_by_rating(session: AsyncSession, limit: int):
     )
     applications = query.mappings().all()
     return applications
+
+
+async def update_application(session: AsyncSession, application_id: int, developer_id: int, data: UpdateApplication):
+    application = await get_application_by_id(session, application_id)
+
+    developer = await get_user_by_id(session, developer_id)
+
+    changes = data.model_dump(exclude_unset=True)
+    for key, value in changes.items():
+        setattr(application, key, value)
+
+    await session.commit()
+    return await get_application_by_id(session, application_id)
