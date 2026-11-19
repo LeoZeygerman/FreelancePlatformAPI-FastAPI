@@ -10,6 +10,7 @@ from sqlalchemy.orm import selectinload
 from app.services.lookups import get_user_by_id
 
 #TODO сделать оброботчик ошибок и типизацию
+#FIX расставить функции в порядке уровней абстракции
 
 async def create_user(session: AsyncSession, user: CreateUser):
     new_user = UsersOrm(
