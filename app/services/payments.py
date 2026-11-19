@@ -39,3 +39,11 @@ async def update_payment(session: AsyncSession, payment_id: int, data: UpdatePay
 
     await session.commit()
     return await get_payment_by_id(session, payment_id)
+
+
+async def delete_payment(session: AsyncSession, payment_id: int):
+    payment = await get_payment_by_id(session, payment_id)
+
+    await session.delete(payment)
+    await session.commit()
+    return {'msg': f'Оплата {payment_id} удалена!'}
