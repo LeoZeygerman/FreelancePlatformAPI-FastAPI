@@ -5,7 +5,7 @@ from app.models.applications import ApplicationsOrm
 from app.models.projects import ProjectsOrm
 from app.models.reviews import ReviewsOrm
 from app.models.tasks import TasksOrm
-from app.services.lookups import get_user_by_id
+from app.services.lookups import get_project_by_id, get_user_by_id
 from app.schemas.projects import CreateProject, UpdateProject
 from app.schemas.reviews import CreateReview
 
@@ -28,10 +28,10 @@ async def create_project(session: AsyncSession, project: CreateProject):
     )
     session.add(new_project)
     await session.commit()
-    return await get_project_by_id(session, new_project.id)
+    return await get_project_with_relations(session, new_project.id)
 
 
-async def get_project_by_id(session: AsyncSession, project_id: int):
+async def get_project_with_relations(session: AsyncSession, project_id: int):
     project = await session.scalar(
         select(ProjectsOrm)
         .where(ProjectsOrm.id == project_id)
@@ -94,7 +94,7 @@ async def update_project(session: AsyncSession, project_id: int, data: UpdatePro
     changes = data.model_dump(exclude_unset=True)
     for key, value in changes.items():
         setattr(project, key, value)
-    return await get_project_by_id(session, project.id)
+    return await get_project_with_relations(session, project.id)
 
 
 async def add_mark(session: AsyncSession, review: CreateReview, project_id: int):
@@ -122,7 +122,7 @@ async def add_mark(session: AsyncSession, review: CreateReview, project_id: int)
 
 
 async def delete_project(session: AsyncSession, project_id: int):
-    project = await get_project_by_id(session, project_id)
+    project = await get_project_with_relations(session, project_id)
     await session.delete(project)
     await session.commit()
     return {'msg': f'Проект {project.title} удален!'}
