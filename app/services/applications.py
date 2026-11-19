@@ -83,3 +83,13 @@ async def update_application(session: AsyncSession, application_id: int, develop
 
     await session.commit()
     return await get_application_by_id(session, application_id)
+
+
+async def delete_application(session: AsyncSession, developer_id: int, application_id: int):
+    developer = await get_user_by_id(session, developer_id)
+
+    application = await get_application_by_id(session, application_id)
+
+    await session.delete(application)
+    await session.commit()
+    return {'msg': f'Заявка {application_id} удалена!'}
