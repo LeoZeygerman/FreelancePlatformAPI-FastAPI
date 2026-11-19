@@ -46,3 +46,27 @@ async def get_free_projects(session: AsyncSession):
     )
     result = projects.all()
     return result
+
+
+async def get_applications_by_rating(session: AsyncSession, limit: int):
+    query = await session.execute(
+        select(
+            ApplicationsOrm.project_id,
+            ProjectsOrm.title.label('project_title'),
+            ProjectsOrm.budget.label('project_budget'),
+            ApplicationsOrm.developer_id,
+            UsersOrm.username.label('developer_name'),
+            UsersOrm.role,
+            UsersOrm.rating.label('developer_rating')
+        )
+        .where(
+            ApplicationsOrm.developer_id.is_not(None),
+            UsersOrm.role == 'developer'
+        )
+        .join(ProjectsOrm, ProjectsOrm.id == ApplicationsOrm.project_id)
+        .join(UsersOrm, UsersOrm.id == ApplicationsOrm.developer_id)
+        .order_by(UsersOrm.rating.desc())
+        .limit(limit)
+    )
+    applications = query.mappings().all()
+    return applications
