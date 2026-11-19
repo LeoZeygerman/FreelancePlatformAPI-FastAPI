@@ -2,6 +2,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.applications import ApplicationsOrm
+from app.models.projects import ProjectsOrm
 from app.models.users import UsersOrm
 from app.schemas.applications import CreateApplication
 from app.services.lookups import get_project_by_id
@@ -23,7 +24,7 @@ async def create_application(session: AsyncSession, application: CreateApplicati
 
     session.add(new_application)
     await session.commit()
-    return 
+    return await get_application_by_id(session, new_application.id)
 
 
 async def get_application_by_id(session: AsyncSession, application_id: int):
@@ -36,3 +37,12 @@ async def get_application_by_id(session: AsyncSession, application_id: int):
         )
     )
     return application
+
+
+async def get_free_projects(session: AsyncSession):
+    projects = await session.scalars(
+        select(ProjectsOrm)
+        .where(ProjectsOrm.developer_id == None)
+    )
+    result = projects.all()
+    return result
