@@ -1,4 +1,5 @@
 from sqlalchemy import select
+from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.payments import PaymentsOrm
 from app.schemas.payments import CreatePayments
@@ -16,3 +17,14 @@ async def create_payment(session: AsyncSession, payment: CreatePayments):
     session.add(new_payment)
     await session.commit()
     return await get_payment_by_id(session, new_payment.id)
+
+
+async def get_payment_by_id(session: AsyncSession, payment_id: int):
+    payment = await session.scalar(
+        select(PaymentsOrm)
+        .where(PaymentsOrm.id == payment_id)
+        .options(
+            selectinload(PaymentsOrm.project)
+        )
+    )
+    return payment
