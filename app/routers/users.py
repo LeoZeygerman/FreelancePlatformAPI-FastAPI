@@ -41,6 +41,7 @@ async def get_all_users_router(session: SessionDep):
 
 @router.get('/developer/{user_id}', summary='Получить разработчика по ID', response_model=ResponseUser)
 async def get_developer_router(session: SessionDep, user_id: int):
+    #TODO: сделать обработчик ошибок и тут по роли
     developer = await session.scalar(
         select(UsersOrm)
         .where(UsersOrm.id == user_id)

@@ -1,12 +1,11 @@
 from pydantic import EmailStr
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from app.exceptions import NotFoundError
 from app.models.projects import ProjectsOrm
-from app.models.reviews import ReviewsOrm
 from app.models.users import UsersOrm
 from app.schemas.users import CreateUser, UpdateUser
 from sqlalchemy.orm import selectinload
-
 from app.services.lookups import get_user_by_id
 
 #TODO сделать оброботчик ошибок и типизацию
@@ -28,6 +27,9 @@ async def get_user_by_email(session: AsyncSession, user_email: EmailStr):
         select(UsersOrm)
         .where(UsersOrm.email == user_email)
     )
+
+    if user is None:
+        raise NotFoundError(f'Пользователь с email {user_email} не найден!')
     return user
 
 
@@ -39,7 +41,10 @@ async def get_all_users(session: AsyncSession):
             selectinload(UsersOrm.customer_projects)
         )
     )
+
     result = users.all()
+    if len(result) == 0:
+        raise NotFoundError('Пользователей нет!')
     return result
 
 
@@ -57,7 +62,11 @@ async def get_user_by_rating(session: AsyncSession, limit: int, role: str, min_r
         .order_by(UsersOrm.rating.desc().nullslast())
         .limit(limit)
     )
-    return users.all()
+
+    result = users.all()
+    if len(result) == 0:
+        raise NotFoundError('Пользователи не найдены!')
+    return result
 
 
 async def get_users_by_projects(session: AsyncSession, limit: int, role: str):
@@ -95,7 +104,10 @@ async def get_users_by_projects(session: AsyncSession, limit: int, role: str):
             .order_by(func.count(ProjectsOrm.customer_id).desc())
             .limit(limit)
         )
+
     result = users.mappings().all()
+    if len(result) == 0:
+        raise NotFoundError('Пользователи не найдены!')
     return result
 
 
@@ -117,7 +129,10 @@ async def get_developers_by_project_count(session: AsyncSession, limit: int):
         .order_by(func.count(ProjectsOrm.developer_id).desc())
         .limit(limit)
     )
+
     result = developers.mappings().all()
+    if len(result) == 0:
+        raise NotFoundError('Разработчики не найдены!')
     return result
 
 
@@ -137,7 +152,10 @@ async def get_customers_by_cost(session: AsyncSession, limit: int):
         .order_by(ProjectsOrm.budget.desc())
         .limit(limit)
     )
+
     result = customers.mappings().all()
+    if len(result) == 0:
+        raise NotFoundError('Пользователи не найдены!')
     return result
 
 
