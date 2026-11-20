@@ -10,3 +10,4 @@ class AppException(Exception):
 class NotFoundError(AppException):
     status_code = 404
     detail = 'Объект не найден!'
+    
