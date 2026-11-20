@@ -95,9 +95,7 @@ async def get_projects_by_applications(session: AsyncSession, limit: int):
 
 async def update_project(session: AsyncSession, project_id: int, data: UpdateProject, user_id: int):
     project = await get_project_with_relations(session, project_id)
-    if project is None:
-        raise NotFoundError('Проект не найден!')
-    elif project.customer_id != user_id:
+    if project.customer_id != user_id:
         raise AccessDeniedError()
 
     changes = data.model_dump(exclude_unset=True)
@@ -108,8 +106,6 @@ async def update_project(session: AsyncSession, project_id: int, data: UpdatePro
 
 async def add_mark(session: AsyncSession, review: CreateReview, project_id: int):
     project = await get_project_by_id(session, project_id)
-    if project is None:
-        raise NotFoundError('Проект не найден!')
 
     new_mark = ReviewsOrm(
         project_id=project_id,
@@ -134,9 +130,7 @@ async def add_mark(session: AsyncSession, review: CreateReview, project_id: int)
 
 async def delete_project(session: AsyncSession, project_id: int, user_id: int):
     project = await get_project_with_relations(session, project_id)
-    if project is None:
-        raise NotFoundError('Проект не найден!')
-    elif project.customer_id != user_id:
+    if project.customer_id != user_id:
         raise AccessDeniedError()
 
     await session.delete(project)
