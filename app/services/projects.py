@@ -1,6 +1,7 @@
 from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
+from app.exceptions import NotFoundError, AccessDeniedError
 from app.models.applications import ApplicationsOrm
 from app.models.projects import ProjectsOrm
 from app.models.reviews import ReviewsOrm
@@ -43,6 +44,9 @@ async def get_project_with_relations(session: AsyncSession, project_id: int):
             selectinload(ProjectsOrm.developer_applications)
         )
     )
+
+    if project is None:
+        raise NotFoundError(f'Проекты не найдены!')
     return project
 
 
@@ -50,7 +54,10 @@ async def get_all_projects(session: AsyncSession):
     projects = await session.scalars(
         select(ProjectsOrm)
     )
+
     result = projects.all()
+    if len(result) == 0:
+        raise NotFoundError('Проекты не найдены!')
     return result
 
 
@@ -60,7 +67,10 @@ async def get_best_paid_projects(session: AsyncSession, limit: int):
         .order_by(ProjectsOrm.budget.desc())
         .limit(limit)
     )
+
     result = projects.all()
+    if len(result) == 0:
+        raise NotFoundError('Проекты не найдены!')
     return result
 
 
@@ -76,20 +86,19 @@ async def get_projects_by_applications(session: AsyncSession, limit: int):
         .order_by(func.count(ApplicationsOrm.id).desc())
         .limit(limit)
     )
+
     result = projects.mappings().all()
+    if len(result) == 0:
+        raise NotFoundError('Проекты не найдены!')
     return result
 
 
-async def update_project(session: AsyncSession, project_id: int, data: UpdateProject):
-    project = await session.scalar(
-        select(ProjectsOrm)
-        .where(ProjectsOrm.id == project_id)
-        .options(
-            selectinload(ProjectsOrm.developer),
-            selectinload(ProjectsOrm.customer),
-            selectinload(ProjectsOrm.project_task)  
-        )
-    )
+async def update_project(session: AsyncSession, project_id: int, data: UpdateProject, user_id: int):
+    project = await get_project_with_relations(session, project_id)
+    if project is None:
+        raise NotFoundError('Проект не найден!')
+    elif project.customer_id != user_id:
+        raise AccessDeniedError()
 
     changes = data.model_dump(exclude_unset=True)
     for key, value in changes.items():
@@ -99,6 +108,8 @@ async def update_project(session: AsyncSession, project_id: int, data: UpdatePro
 
 async def add_mark(session: AsyncSession, review: CreateReview, project_id: int):
     project = await get_project_by_id(session, project_id)
+    if project is None:
+        raise NotFoundError('Проект не найден!')
 
     new_mark = ReviewsOrm(
         project_id=project_id,
@@ -121,8 +132,13 @@ async def add_mark(session: AsyncSession, review: CreateReview, project_id: int)
     return {'msg': f'Оценка пользователю {user.username} успешно выставлена!'}
 
 
-async def delete_project(session: AsyncSession, project_id: int):
+async def delete_project(session: AsyncSession, project_id: int, user_id: int):
     project = await get_project_with_relations(session, project_id)
+    if project is None:
+        raise NotFoundError('Проект не найден!')
+    elif project.customer_id != user_id:
+        raise AccessDeniedError()
+
     await session.delete(project)
     await session.commit()
     return {'msg': f'Проект {project.title} удален!'}
