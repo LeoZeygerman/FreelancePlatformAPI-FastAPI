@@ -89,7 +89,7 @@ async def update_application(session: AsyncSession, application_id: int, develop
     application = await get_application_by_id(session, application_id)
     if application.developer_id != developer_id:
         raise AccessDeniedError()
-    developer = await get_user_by_id(session, developer_id)
+    await get_user_by_id(session, developer_id)
 
     changes = data.model_dump(exclude_unset=True)
     for key, value in changes.items():

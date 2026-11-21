@@ -1,10 +1,5 @@
-from fastapi import APIRouter, HTTPException
-from sqlalchemy import select
-from sqlalchemy.orm import selectinload
+from fastapi import APIRouter
 from app.database import SessionDep
-from app.models.projects import ProjectsOrm
-from app.models.tasks import TasksOrm
-from app.models.users import UsersOrm
 from app.schemas.tasks import CreateTask, ResponseTask, TaskPriority, UpdateTask
 from app.services.tasks import create_task, delete_task, get_task_by_id, get_tasks_by_priority, update_tasks
 
