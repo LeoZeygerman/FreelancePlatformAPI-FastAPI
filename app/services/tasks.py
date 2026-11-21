@@ -7,7 +7,7 @@ from app.schemas.tasks import CreateTask, UpdateTask
 from app.services.lookups import get_project_by_id, get_user_by_id
 
 
-async def create_task(session: AsyncSession, customer_id: int, task: CreateTask):
+async def create_task(session: AsyncSession, customer_id: int, task: CreateTask) -> TasksOrm:
     project = await get_project_by_id(session, task.project_id)
     user = await get_user_by_id(session, customer_id)
     if project.customer_id != user.id:
@@ -25,7 +25,7 @@ async def create_task(session: AsyncSession, customer_id: int, task: CreateTask)
     return await get_task_by_id(session, new_task.id)
 
 
-async def get_task_by_id(session: AsyncSession, task_id: int, customer_id: int):
+async def get_task_by_id(session: AsyncSession, task_id: int, customer_id: int) -> TasksOrm:
     task = await session.scalar(
         select(TasksOrm)
         .where(TasksOrm.id == task_id)
@@ -42,7 +42,7 @@ async def get_task_by_id(session: AsyncSession, task_id: int, customer_id: int):
     return task
 
 
-async def get_tasks_by_priority(session: AsyncSession, project_id: int, priority: str):
+async def get_tasks_by_priority(session: AsyncSession, project_id: int, priority: str) -> list[TasksOrm]:
     tasks = await session.scalars(
         select(TasksOrm)
         .options(
@@ -60,7 +60,7 @@ async def get_tasks_by_priority(session: AsyncSession, project_id: int, priority
     return result
 
 
-async def update_tasks(session: AsyncSession, task_id: int, data: UpdateTask, customer_id: int):
+async def update_tasks(session: AsyncSession, task_id: int, data: UpdateTask, customer_id: int) -> TasksOrm:
     task = await get_task_by_id(session, task_id)
     project = await get_project_by_id(session, task.project_id)
     if project.customer_id != customer_id:
@@ -74,7 +74,7 @@ async def update_tasks(session: AsyncSession, task_id: int, data: UpdateTask, cu
     return task
 
 
-async def delete_task(session: AsyncSession, task_id: int, customer_id: int):
+async def delete_task(session: AsyncSession, task_id: int, customer_id: int) -> dict:
     task = await get_task_by_id(session, task_id)
     project = await get_project_by_id(session, task.project_id)
     if project.customer_id != customer_id:
