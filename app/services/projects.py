@@ -105,7 +105,7 @@ async def update_project(session: AsyncSession, project_id: int, data: UpdatePro
 
 
 async def add_mark(session: AsyncSession, review: CreateReview, project_id: int) -> dict:
-    project = await get_project_by_id(session, project_id)
+    await get_project_by_id(session, project_id)
 
     new_mark = ReviewsOrm(
         project_id=project_id,

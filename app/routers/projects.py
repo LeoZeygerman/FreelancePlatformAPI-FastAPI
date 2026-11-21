@@ -9,6 +9,7 @@ from app.models.tasks import TasksOrm
 from app.models.users import UsersOrm
 from app.schemas.projects import CreateProject, ResponseProject, ResponseProjectShort, UpdateProject, ResponseProjectWithApplicationCount
 from app.schemas.reviews import CreateReview
+from app.services.projects import add_mark, create_project, delete_project, get_all_projects, get_best_paid_projects, get_project_with_relations, get_projects_by_applications, update_project
 
 
 router = APIRouter(prefix='/project', tags=['Проекты'])
@@ -16,160 +17,47 @@ router = APIRouter(prefix='/project', tags=['Проекты'])
 
 @router.get('/get-one/{project_id}', summary='Найти проект по ID', response_model=ResponseProject)
 async def get_project_by_id_router(session: SessionDep, project_id: int):
-    project = await session.scalar(
-        select(ProjectsOrm)
-        .where(ProjectsOrm.id == project_id)
-        .options(
-            selectinload(ProjectsOrm.customer),
-            selectinload(ProjectsOrm.developer),
-            selectinload(ProjectsOrm.payment_status),
-            selectinload(ProjectsOrm.project_task),
-            selectinload(ProjectsOrm.developer_applications)
-        )
-    )
-    if project is None:
-        raise HTTPException(status_code=404, detail='Проект не найден!')
+    project = await get_project_with_relations(session, project_id)
     return project
 
 
 @router.post('/create', summary='Создать проект', response_model=ResponseProject)
 async def create_project_router(session: SessionDep, project: CreateProject):
-    new_project = ProjectsOrm(
-        title = project.title,
-        description = project.description,
-        budget = project.budget,
-        customer_id = project.customer_id,
-        project_task = [
-            TasksOrm(
-            task = task.task,
-            description = task.description,
-            priority = task.priority,
-            deadline = task.deadline
-            )
-            for task in project.project_task
-        ]
-    )
-    session.add(new_project)
-    await session.commit()
-    await session.flush()
-    return await get_project_by_id_router(session, new_project.id)
+    new_project = create_project(session, project)
+    return new_project
 
 
 @router.get('/all', summary='Получить все проекты', response_model=list[ResponseProjectShort])
 async def get_all_projects_router(session: SessionDep):
-    projects = await session.scalars(
-        select(ProjectsOrm)
-    )
-    result = projects.all()
-    if len(result) == 0:
-        raise HTTPException(status_code=404, detail='Проектов нет!')
-    return result
+    projects = await get_all_projects(session)
+    return projects
 
 
 @router.get('/by-paid', summary='Получить самые высокооплачиваемые проекты', response_model=list[ResponseProjectShort])
 async def get_best_paid_projects_router(session: SessionDep, limit: int = Query(ge=1, default=10, le=100)):
-    projects = await session.scalars(
-        select(ProjectsOrm)
-        .order_by(ProjectsOrm.budget.desc())
-        .limit(limit)
-    )
-    result = projects.all()
-    if len(result) == 0:
-        raise HTTPException(status_code=404, detail='Проекты не найдены!')
-    return result
+    projects = await get_best_paid_projects(session, limit)
+    return projects
 
 
 @router.get('/by-applications', summary='Получить проекты по количеству заявок', response_model=list[ResponseProjectWithApplicationCount])
 async def get_projects_by_applications_router(session: SessionDep, limit: int=Query(ge=1, default=10, le=100)):
-    query = (
-        select(
-            ProjectsOrm.id.label('project_id'),
-            ProjectsOrm.title.label('project_title'),
-            func.count(ApplicationsOrm.id).label('applications')
-        )
-        .outerjoin(ApplicationsOrm, ApplicationsOrm.project_id == ProjectsOrm.id)
-        .group_by(ProjectsOrm.id)
-        .order_by(func.count(ApplicationsOrm.id).desc())
-        .limit(limit)
-    )
-    projects = (await session.execute(query)).mappings().all()
-    if len(projects) == 0:
-        raise HTTPException(status_code=404, detail='Проекты не найдены!')
+    projects = await get_projects_by_applications(session, limit)
     return projects
 
 
 @router.patch('/update/{project_id}', summary='Обновить проект', response_model=ResponseProject)
-async def update_project_router(session: SessionDep, project_id: int, data: UpdateProject):
-    project = await session.scalar(
-        select(ProjectsOrm)
-        .where(ProjectsOrm.id == project_id)
-        .options(
-            selectinload(ProjectsOrm.developer),
-            selectinload(ProjectsOrm.customer),
-            selectinload(ProjectsOrm.project_task)
-        )
-    )
-    if project is None:
-        raise HTTPException(status_code=404, detail='Проект не найден!')
-
-    changes = data.model_dump(exclude_unset=True)
-
-    for key, value in changes.items():
-        setattr(project, key, value)
-    await session.commit()
+async def update_project_router(session: SessionDep, project_id: int, data: UpdateProject, user_id: int):
+    project = await update_project(session, project_id, data, user_id)
     return project
 
 
 @router.post('/add-mark/{project_id}', summary='Выставить оценку')
 async def add_mark_router(session: SessionDep, project: CreateReview, project_id: int):
-    find_project = await session.scalar(
-        select(ProjectsOrm)
-        .where(ProjectsOrm.id == project_id)
-    )
-    if find_project is None:
-        raise HTTPException(status_code=404, detail='Проект не найден!')
-    elif find_project.status == False:
-        raise HTTPException(status_code=404, detail='Нельзя оценить незаконченный проект!')
-
-    new_mark = ReviewsOrm(
-        project_id = project_id,
-        reviewer_id = project.reviewer_id,
-        reviewee_id = project.reviewee_id,
-        rating = project.rating
-    )
-    session.add(new_mark)
-    await session.flush()
-
-    new_rating = await session.scalar(
-        select(func.avg(ReviewsOrm.rating))
-        .where(ReviewsOrm.reviewee_id == project.reviewee_id)
-    )
-
-    user = await session.scalar(
-        select(UsersOrm)
-        .where(UsersOrm.id == project.reviewee_id)
-    )
-    user.rating = new_rating
-
-    await session.commit()
-    return {'msg': f'Оценка пользователю {user.username} успешно выставлена!'}
+    new_mark = add_mark(session, project, project_id)
+    return new_mark
 
 
 @router.delete('/delete/{project_id}', summary='Удалить проект')
-async def delete_project_router(session: SessionDep, project_id: int):
-    project = await session.scalar(
-        select(ProjectsOrm)
-        .where(ProjectsOrm.id == project_id)
-        .options(
-            selectinload(ProjectsOrm.payment_status),
-            selectinload(ProjectsOrm.customer),
-            selectinload(ProjectsOrm.developer),
-            selectinload(ProjectsOrm.project_task),
-            selectinload(ProjectsOrm.developer_applications)
-        )
-    )
-    if project is None:
-        raise HTTPException(status_code=404, detail='Проект не найден!')
-    await session.delete(project)
-    await session.commit()
-    return {'msg': f'Проект {project.title} удален!'}
+async def delete_project_router(session: SessionDep, project_id: int, user_id: int):
+    project = await delete_project(session, project_id, user_id)
+    return project
