@@ -1,12 +1,7 @@
-from fastapi import APIRouter, HTTPException, Query
-from sqlalchemy import func, select
-from sqlalchemy.orm import selectinload
+from fastapi import APIRouter, Query
 from app.database import SessionDep
-from app.models.projects import ProjectsOrm
-from app.models.users import UsersOrm
 from app.schemas.users import CreateUser, ResponseCustomerWithProjects, ResponseDeveloperStats, ResponseUser, ResponseUserShort, UpdateUser
-from app.models.reviews import ReviewsOrm
-from app.services.users import create_user, get_all_users, get_user_by_role, get_users_by_projects
+from app.services.users import create_user, delete_user, get_all_users, get_customers_by_cost, get_user_by_rating, get_user_by_role, get_users_by_projects, update_user
 
 
 router = APIRouter(prefix='/user', tags=['Пользователи'])
@@ -43,108 +38,30 @@ async def get_developers_by_projects_router(session: SessionDep, limit: int=Quer
 
 
 @router.get('/developers/by-rating', summary='Получить разработчиков по рейтингу', response_model=list[ResponseDeveloperStats])
-async def get_developers_by_reviews_router(session: SessionDep, min_rating: int=Query(ge=1, le=5), max_rating: int=Query(ge=1, le=5), limit: int=Query(ge=1, default=10, le=100)):
-    if min_rating > max_rating:
-        raise HTTPException(status_code=422, detail='Ошибка при фильтре рейтинга!')
-    query = (
-        select(
-            UsersOrm.id,
-            UsersOrm.username,
-            UsersOrm.email,
-            func.count(ReviewsOrm.reviewee_id).label('projects_count')
-        )
-        .where(
-            UsersOrm.role == 'developer',
-            UsersOrm.rating.between(min_rating, max_rating)
-        )
-        .join(ReviewsOrm, ReviewsOrm.reviewee_id == UsersOrm.id)
-        .group_by(UsersOrm.id)
-        .order_by(func.count(ReviewsOrm.reviewee_id).desc())
-        .limit(limit)
-    )
-
-    developers = (await session.execute(query)).mappings().all()
-    if len(developers) == 0:
-        raise HTTPException(status_code=404, detail='Разработчиков не найдено!')
+async def get_developers_by_rating_router(session: SessionDep, limit: int=Query(ge=1, default=10, le=100), role='developer', min_rating: int=Query(ge=1, le=5), max_rating: int=Query(ge=1, le=5),):
+    developers = get_user_by_rating(session, limit, role, min_rating, max_rating)
     return developers
 
 
-@router.get('/customers', summary='Получить топ создателей по рейтингу', response_model=list[ResponseUserShort])
-async def get_top_customers_router(session: SessionDep, limit: int = Query(ge=1, default=10, le=100)):
-    customers = await session.scalars(
-        select(UsersOrm)
-        .where(UsersOrm.role == 'customer')
-        .options(
-            selectinload(UsersOrm.customer_projects),
-            selectinload(UsersOrm.developer_projects)
-        )
-        .order_by(UsersOrm.rating.desc().nullslast())
-        .limit(limit)
-    )
-    result = customers.all()
-    if len(result) == 0:
-        raise HTTPException(status_code=404, detail='Создателей нет!')
-    return result
+@router.get('/customers', summary='Получить создателей по рейтингу', response_model=list[ResponseUserShort])
+async def get_top_customers_router(session: SessionDep, limit: int = Query(ge=1, default=10, le=100), role='customer', min_rating: int=Query(ge=1, le=5), max_rating: int=Query(ge=1, le=5)):
+    customers = await get_user_by_rating(session, limit, role, min_rating, max_rating)
+    return customers
 
 
 @router.get('/customers/by-cost', summary='Получить создателей с самыми дорогостоящими проектами', response_model=list[ResponseCustomerWithProjects])
 async def get_customers_by_cost_router(session: SessionDep, limit: int=Query(ge=1, default=10, le=100)):
-    query = (
-        select(
-            UsersOrm.id,
-            UsersOrm.username,
-            UsersOrm.email,
-            UsersOrm.rating,
-            ProjectsOrm.title.label('project_title'),
-            ProjectsOrm.budget.label('project_budget'),
-            ProjectsOrm.status.label('project_status')
-        )
-        .where(UsersOrm.role == 'customer')
-        .join(ProjectsOrm, ProjectsOrm.customer_id == UsersOrm.id)
-        .order_by(ProjectsOrm.budget.desc())
-        .limit(limit)
-    )
-
-    customers = (await session.execute(query)).mappings().all()
-    if len(customers) == 0:
-        raise HTTPException(status_code=404, detail='Создатели не найдены!')
+    customers = get_customers_by_cost(session, limit)
     return customers
 
 
 @router.patch('/update/{user_id}', summary='Изменить пользователя', response_model=ResponseUser)
 async def update_user_router(session: SessionDep, user_id: int, data: UpdateUser):
-    user = await session.scalar(
-        select(UsersOrm)
-        .where(UsersOrm.id == user_id)
-        .options(
-            selectinload(UsersOrm.developer_projects),
-            selectinload(UsersOrm.customer_projects)
-        )
-    )
-    if user is None:
-        raise HTTPException(status_code=404, detail='Пользователь не найден!')
-
-    changes = data.model_dump(exclude_unset=True)
-    for key, value in changes.items():
-        setattr(user, key, value)
-
-    await session.flush()
-    await session.commit()
+    user = await update_user(session, user_id, data)
     return user
 
 
 @router.delete('/delete/{user_id}', summary='Удалить пользователя')
 async def delete_user_router(session: SessionDep, user_id: int):
-    user = await session.scalar(
-        select(UsersOrm)
-        .where(UsersOrm.id == user_id)
-        .options(
-            selectinload(UsersOrm.developer_projects),
-            selectinload(UsersOrm.customer_projects)
-        )
-    )
-    if user is None:
-        raise HTTPException(status_code=404, detail='Пользователь не найден!')
-    await session.delete(user)
-    await session.commit()
-    return {'msg': f'Пользователь {user.username} удален!'}
+    user = await delete_user(session, user_id)
+    return user
