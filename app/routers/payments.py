@@ -5,6 +5,7 @@ from app.database import SessionDep
 from app.models.payments import PaymentsOrm
 from app.models.projects import ProjectsOrm
 from app.schemas.payments import CreatePayments, ResponsePayments, UpdatePayments
+from app.services.payments import create_payment, delete_payment, get_payment_by_id, update_payment
 
 
 router = APIRouter(prefix='/payment', tags=['Оплата'])
@@ -12,68 +13,23 @@ router = APIRouter(prefix='/payment', tags=['Оплата'])
 
 @router.post('/create', summary='Добавить оплату', response_model=ResponsePayments)
 async def create_payment_router(session: SessionDep, payment: CreatePayments):
-    project = await session.scalar(
-        select(ProjectsOrm)
-        .where(ProjectsOrm.id == payment.project_id)
-    )
-    if project is None:
-        raise HTTPException(status_code=404, detail='Проект не найден!')
-
-    new_payment = PaymentsOrm(
-        project = project,
-        amount = payment.amount
-    )
-
-    session.add(new_payment)
-    await session.flush()
-    await session.commit()
+    new_payment = await create_payment(session, payment)
     return new_payment
 
 
 @router.get('/{payment_id}', summary='Найти оплату по ID', response_model=ResponsePayments)
 async def get_payment_router(session: SessionDep, payment_id: int):
-    payment = await session.scalar(
-        select(PaymentsOrm)
-        .where(PaymentsOrm.id == payment_id)
-        .options(
-            selectinload(PaymentsOrm.project)
-        )
-    )
-    if payment is None:
-        raise HTTPException(status_code=404, detail='Оплата не найдена!')
+    payment = await get_payment_by_id(session, payment_id)
     return payment
 
 
 @router.patch('/update/{payment_id}', summary='Обновить оплату', response_model=ResponsePayments)
-async def update_payment_router(session: SessionDep, payment_id: int, data: UpdatePayments):
-    payment = await session.scalar(
-        select(PaymentsOrm)
-        .where(PaymentsOrm.id == payment_id)
-        .options(
-            selectinload(PaymentsOrm.project)
-        )
-    )
-    if payment is None:
-        raise HTTPException(status_code=404, detail='Оплата не найдена!')
-
-    changes = data.model_dump(exclude_unset=True)
-    for key, value in changes.items():
-        setattr(payment, key, value)
-
-    await session.flush()
-    await session.commit()
+async def update_payment_router(session: SessionDep, payment_id: int, data: UpdatePayments, user_id: int):
+    payment = await update_payment(session, payment_id, data, user_id)
     return payment
 
 
 @router.delete('/delete/{payment_id}', summary='Удалить оплату')
-async def delete_payment_router(session: SessionDep, payment_id: int):
-    payment = await session.scalar(
-        select(PaymentsOrm)
-        .where(PaymentsOrm.id == payment_id)
-    )
-    if payment is None:
-        raise HTTPException(status_code=404, detail='Оплата не найдена!')
-
-    await session.delete(payment)
-    await session.commit()
-    return {'msg': f'Оплата {payment_id} удалена!'}
+async def delete_payment_router(session: SessionDep, payment_id: int, user_id: int):
+    payment = await delete_payment(session, payment_id, user_id)
+    return payment

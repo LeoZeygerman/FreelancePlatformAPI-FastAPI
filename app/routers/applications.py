@@ -1,10 +1,5 @@
-from fastapi import APIRouter, HTTPException, Query
-from sqlalchemy import select
-from sqlalchemy.orm import selectinload
+from fastapi import APIRouter, Query
 from app.database import SessionDep
-from app.models.applications import ApplicationsOrm
-from app.models.projects import ProjectsOrm
-from app.models.users import UsersOrm
 from app.schemas.applications import CreateApplication, ResponseApplication, ResponseApplicationByDeveloperRating, UpdateApplication
 from app.schemas.projects import ResponseProjectShort
 from app.services.applications import create_application, delete_application, get_application_by_id, get_applications_by_rating, get_free_projects, update_application
