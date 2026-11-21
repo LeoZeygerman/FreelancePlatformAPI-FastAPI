@@ -48,6 +48,13 @@ async def get_all_users(session: AsyncSession) -> list[UsersOrm]:
     return result
 
 
+async def get_user_by_role(session: AsyncSession, user_id: int, role: str) -> UsersOrm:
+    user = await get_user_by_id(session, user_id)
+    if user.role != role:
+        raise NotFoundError('У пользователя другая роль!')
+    return user
+
+
 async def get_user_by_rating(session: AsyncSession, limit: int, role: str, min_rating: int, max_rating: int) -> list[UsersOrm]:
     users = await session.scalars(
         select(UsersOrm)

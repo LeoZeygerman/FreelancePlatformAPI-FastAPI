@@ -6,6 +6,7 @@ from app.models.projects import ProjectsOrm
 from app.models.users import UsersOrm
 from app.schemas.users import CreateUser, ResponseCustomerWithProjects, ResponseDeveloperStats, ResponseUser, ResponseUserShort, UpdateUser
 from app.models.reviews import ReviewsOrm
+from app.services.users import create_user, get_all_users, get_user_by_role
 
 
 router = APIRouter(prefix='/user', tags=['Пользователи'])
@@ -13,47 +14,19 @@ router = APIRouter(prefix='/user', tags=['Пользователи'])
 
 @router.post('/create', summary='Добавить пользователя', response_model=ResponseUserShort)
 async def create_user_router(session: SessionDep, user: CreateUser):
-    new_user = UsersOrm(
-        username = user.username,
-        role = user.role,
-        email = user.email
-    )
-    session.add(new_user)
-    await session.flush()
-    await session.commit()
+    new_user = await create_user(session, user)
     return new_user
 
 
 @router.get('/get-all', summary='Показать всех пользователей', response_model=list[ResponseUser])
 async def get_all_users_router(session: SessionDep):
-    users = await session.scalars(
-        select(UsersOrm)
-        .options(
-            selectinload(UsersOrm.developer_projects),
-            selectinload(UsersOrm.customer_projects)
-        )
-    )
-    result = users.all()
-    if len(result) == 0:
-        raise HTTPException(status_code=404, detail='Пользователи не найдены!')
-    return result
+    users = await get_all_users(session)
+    return users
 
 
 @router.get('/developer/{user_id}', summary='Получить разработчика по ID', response_model=ResponseUser)
-async def get_developer_router(session: SessionDep, user_id: int):
-    #TODO: сделать обработчик ошибок и тут по роли
-    developer = await session.scalar(
-        select(UsersOrm)
-        .where(UsersOrm.id == user_id)
-        .options(
-            selectinload(UsersOrm.developer_projects),
-            selectinload(UsersOrm.customer_projects)
-        )
-    )
-    if developer is None:
-        raise HTTPException(status_code=404, detail='Пользователь не найден!')
-    elif developer.role != 'developer':
-        raise HTTPException(status_code=404, detail='Пользователь не разработчик!')
+async def get_developer_router(session: SessionDep, user_id: int, role='developer'):
+    developer = await get_user_by_role(session, user_id, role)
     return developer
 
 
