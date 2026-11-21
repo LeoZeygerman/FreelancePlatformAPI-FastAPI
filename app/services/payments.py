@@ -7,7 +7,7 @@ from app.schemas.payments import CreatePayments, UpdatePayments
 from app.services.lookups import get_project_by_id
 
 
-async def create_payment(session: AsyncSession, payment: CreatePayments):
+async def create_payment(session: AsyncSession, payment: CreatePayments) -> PaymentsOrm:
     project = await get_project_by_id(session, payment.project_id)
 
     new_payment = PaymentsOrm(
@@ -20,7 +20,7 @@ async def create_payment(session: AsyncSession, payment: CreatePayments):
     return await get_payment_by_id(session, new_payment.id)
 
 
-async def get_payment_by_id(session: AsyncSession, payment_id: int):
+async def get_payment_by_id(session: AsyncSession, payment_id: int) -> PaymentsOrm:
     payment = await session.scalar(
         select(PaymentsOrm)
         .where(PaymentsOrm.id == payment_id)
@@ -34,7 +34,7 @@ async def get_payment_by_id(session: AsyncSession, payment_id: int):
     return payment
 
 
-async def update_payment(session: AsyncSession, payment_id: int, data: UpdatePayments, user_id: int):
+async def update_payment(session: AsyncSession, payment_id: int, data: UpdatePayments, user_id: int) -> PaymentsOrm:
     payment = await get_payment_by_id(session, payment_id)
     project = await get_project_by_id(session, payment.project_id)
     if project.customer_id != user_id:
@@ -48,7 +48,7 @@ async def update_payment(session: AsyncSession, payment_id: int, data: UpdatePay
     return await get_payment_by_id(session, payment_id)
 
 
-async def delete_payment(session: AsyncSession, payment_id: int, user_id: int):
+async def delete_payment(session: AsyncSession, payment_id: int, user_id: int) -> dict:
     payment = await get_payment_by_id(session, payment_id)
     project = await get_project_by_id(session, payment.project_id)
     if project.customer_id != user_id:

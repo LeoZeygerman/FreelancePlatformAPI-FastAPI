@@ -1,9 +1,5 @@
-from fastapi import APIRouter, HTTPException
-from sqlalchemy import select
-from sqlalchemy.orm import selectinload
+from fastapi import APIRouter
 from app.database import SessionDep
-from app.models.payments import PaymentsOrm
-from app.models.projects import ProjectsOrm
 from app.schemas.payments import CreatePayments, ResponsePayments, UpdatePayments
 from app.services.payments import create_payment, delete_payment, get_payment_by_id, update_payment
 
