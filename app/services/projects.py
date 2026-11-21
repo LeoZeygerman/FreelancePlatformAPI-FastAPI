@@ -11,7 +11,7 @@ from app.schemas.projects import CreateProject, UpdateProject
 from app.schemas.reviews import CreateReview
 
 
-async def create_project(session: AsyncSession, project: CreateProject):
+async def create_project(session: AsyncSession, project: CreateProject) -> ProjectsOrm:
     new_project = ProjectsOrm(
         title=project.title,
         description=project.description,
@@ -32,7 +32,7 @@ async def create_project(session: AsyncSession, project: CreateProject):
     return await get_project_with_relations(session, new_project.id)
 
 
-async def get_project_with_relations(session: AsyncSession, project_id: int):
+async def get_project_with_relations(session: AsyncSession, project_id: int) -> ProjectsOrm:
     project = await session.scalar(
         select(ProjectsOrm)
         .where(ProjectsOrm.id == project_id)
@@ -50,7 +50,7 @@ async def get_project_with_relations(session: AsyncSession, project_id: int):
     return project
 
 
-async def get_all_projects(session: AsyncSession):
+async def get_all_projects(session: AsyncSession) -> list[ProjectsOrm]:
     projects = await session.scalars(
         select(ProjectsOrm)
     )
@@ -61,7 +61,7 @@ async def get_all_projects(session: AsyncSession):
     return result
 
 
-async def get_best_paid_projects(session: AsyncSession, limit: int):
+async def get_best_paid_projects(session: AsyncSession, limit: int) -> list[ProjectsOrm]:
     projects = await session.scalars(
         select(ProjectsOrm)
         .order_by(ProjectsOrm.budget.desc())
@@ -74,7 +74,7 @@ async def get_best_paid_projects(session: AsyncSession, limit: int):
     return result
 
 
-async def get_projects_by_applications(session: AsyncSession, limit: int):
+async def get_projects_by_applications(session: AsyncSession, limit: int) -> list[ProjectsOrm]:
     projects = await session.execute(
         select(
             ProjectsOrm.id.label('project_id'),
@@ -93,7 +93,7 @@ async def get_projects_by_applications(session: AsyncSession, limit: int):
     return result
 
 
-async def update_project(session: AsyncSession, project_id: int, data: UpdateProject, user_id: int):
+async def update_project(session: AsyncSession, project_id: int, data: UpdateProject, user_id: int) -> ProjectsOrm:
     project = await get_project_with_relations(session, project_id)
     if project.customer_id != user_id:
         raise AccessDeniedError()
@@ -104,7 +104,7 @@ async def update_project(session: AsyncSession, project_id: int, data: UpdatePro
     return await get_project_with_relations(session, project.id)
 
 
-async def add_mark(session: AsyncSession, review: CreateReview, project_id: int):
+async def add_mark(session: AsyncSession, review: CreateReview, project_id: int) -> dict:
     project = await get_project_by_id(session, project_id)
 
     new_mark = ReviewsOrm(
@@ -128,7 +128,7 @@ async def add_mark(session: AsyncSession, review: CreateReview, project_id: int)
     return {'msg': f'Оценка пользователю {user.username} успешно выставлена!'}
 
 
-async def delete_project(session: AsyncSession, project_id: int, user_id: int):
+async def delete_project(session: AsyncSession, project_id: int, user_id: int) -> dict:
     project = await get_project_with_relations(session, project_id)
     if project.customer_id != user_id:
         raise AccessDeniedError()
