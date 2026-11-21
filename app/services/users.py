@@ -11,7 +11,7 @@ from app.services.lookups import get_user_by_id
 #TODO сделать оброботчик ошибок и типизацию
 #FIX расставить функции в порядке уровней абстракции
 
-async def create_user(session: AsyncSession, user: CreateUser):
+async def create_user(session: AsyncSession, user: CreateUser) -> UsersOrm:
     new_user = UsersOrm(
         username = user.username,
         role = user.role,
@@ -22,7 +22,7 @@ async def create_user(session: AsyncSession, user: CreateUser):
     return await get_user_by_email(session, user.email)
 
 
-async def get_user_by_email(session: AsyncSession, user_email: EmailStr):
+async def get_user_by_email(session: AsyncSession, user_email: EmailStr) -> UsersOrm:
     user = await session.scalar(
         select(UsersOrm)
         .where(UsersOrm.email == user_email)
@@ -33,7 +33,7 @@ async def get_user_by_email(session: AsyncSession, user_email: EmailStr):
     return user
 
 
-async def get_all_users(session: AsyncSession):
+async def get_all_users(session: AsyncSession) -> list[UsersOrm]:
     users = await session.scalars(
         select(UsersOrm)
         .options(
@@ -48,7 +48,7 @@ async def get_all_users(session: AsyncSession):
     return result
 
 
-async def get_user_by_rating(session: AsyncSession, limit: int, role: str, min_rating: int, max_rating: int):
+async def get_user_by_rating(session: AsyncSession, limit: int, role: str, min_rating: int, max_rating: int) -> list[UsersOrm]:
     users = await session.scalars(
         select(UsersOrm)
         .where(
@@ -69,7 +69,7 @@ async def get_user_by_rating(session: AsyncSession, limit: int, role: str, min_r
     return result
 
 
-async def get_users_by_projects(session: AsyncSession, limit: int, role: str):
+async def get_users_by_projects(session: AsyncSession, limit: int, role: str) -> list[UsersOrm]:
     if role == 'developer':
         users = await session.execute(
             select(
@@ -111,8 +111,7 @@ async def get_users_by_projects(session: AsyncSession, limit: int, role: str):
     return result
 
 
-async def get_developers_by_project_count(session: AsyncSession, limit: int):
-    #TODO сделать проверку 
+async def get_developers_by_project_count(session: AsyncSession, limit: int) -> list[UsersOrm]:
     developers = await session.execute(
         select(
             UsersOrm.id,
@@ -136,7 +135,7 @@ async def get_developers_by_project_count(session: AsyncSession, limit: int):
     return result
 
 
-async def get_customers_by_cost(session: AsyncSession, limit: int):
+async def get_customers_by_cost(session: AsyncSession, limit: int) -> list[UsersOrm]:
     customers = await session.execute(
         select(
             UsersOrm.id,
@@ -159,7 +158,7 @@ async def get_customers_by_cost(session: AsyncSession, limit: int):
     return result
 
 
-async def update_user(session: AsyncSession, user_id: int, data: UpdateUser):
+async def update_user(session: AsyncSession, user_id: int, data: UpdateUser) -> UsersOrm:
     user = await get_user_by_id(session, user_id)
     changes = data.model_dump(exclude_unset=True)
     for key, value in changes.items():
@@ -168,7 +167,7 @@ async def update_user(session: AsyncSession, user_id: int, data: UpdateUser):
     return await get_user_by_id(session, user_id)
 
 
-async def delete_user(session: AsyncSession, user_id: int):
+async def delete_user(session: AsyncSession, user_id: int) -> dict:
     user = await get_user_by_id(session, user_id)
     await session.delete(user)
     await session.commit()

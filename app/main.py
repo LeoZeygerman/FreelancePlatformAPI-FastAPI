@@ -8,7 +8,7 @@ from app.routers.applications import router as applications_router
 from app.routers.users import router as users_router
 from app.routers.projects import router as projects_router
 
-
+#TODO: Документ-строки, абстракция
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
