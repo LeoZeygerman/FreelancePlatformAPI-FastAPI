@@ -9,7 +9,7 @@ from app.schemas.applications import CreateApplication, UpdateApplication
 from app.services.lookups import get_project_by_id, get_user_by_id
 
 
-async def create_application(session: AsyncSession, application: CreateApplication):
+async def create_application(session: AsyncSession, application: CreateApplication) -> ApplicationsOrm:
     project = await get_project_by_id(session, application.project_id)
     developer = await session.scalar(
         select(UsersOrm)
@@ -31,7 +31,7 @@ async def create_application(session: AsyncSession, application: CreateApplicati
     return await get_application_by_id(session, new_application.id)
 
 
-async def get_application_by_id(session: AsyncSession, application_id: int):
+async def get_application_by_id(session: AsyncSession, application_id: int) -> ApplicationsOrm:
     application = await session.scalar(
         select(ApplicationsOrm)
         .where(ApplicationsOrm.id == application_id)
@@ -46,7 +46,7 @@ async def get_application_by_id(session: AsyncSession, application_id: int):
     return application
 
 
-async def get_free_projects(session: AsyncSession):
+async def get_free_projects(session: AsyncSession) -> list[ProjectsOrm]:
     projects = await session.scalars(
         select(ProjectsOrm)
         .where(ProjectsOrm.developer_id == None)
@@ -58,7 +58,7 @@ async def get_free_projects(session: AsyncSession):
     return result
 
 
-async def get_applications_by_rating(session: AsyncSession, limit: int):
+async def get_applications_by_rating(session: AsyncSession, limit: int) -> list[ApplicationsOrm]:
     query = await session.execute(
         select(
             ApplicationsOrm.project_id,
@@ -85,7 +85,7 @@ async def get_applications_by_rating(session: AsyncSession, limit: int):
     return applications
 
 
-async def update_application(session: AsyncSession, application_id: int, developer_id: int, data: UpdateApplication):
+async def update_application(session: AsyncSession, application_id: int, developer_id: int, data: UpdateApplication) -> ApplicationsOrm:
     application = await get_application_by_id(session, application_id)
     if application.developer_id != developer_id:
         raise AccessDeniedError()
@@ -99,7 +99,7 @@ async def update_application(session: AsyncSession, application_id: int, develop
     return await get_application_by_id(session, application_id)
 
 
-async def delete_application(session: AsyncSession, developer_id: int, application_id: int):
+async def delete_application(session: AsyncSession, developer_id: int, application_id: int) -> dict:
     developer = await get_user_by_id(session, developer_id)
     application = await get_application_by_id(session, application_id)
     if application.developer_id != developer_id:
