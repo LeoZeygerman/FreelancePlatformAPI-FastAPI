@@ -15,3 +15,8 @@ class NotFoundError(AppException):
 class AccessDeniedError(AppException):
     status_code = 403
     detail = 'Недостаточно прав!'
+
+
+class UnprocessableEntityError(AppException):
+    status_code = 422
+    detail = 'Ошибка в значениях!'

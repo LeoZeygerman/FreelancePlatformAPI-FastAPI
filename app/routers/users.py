@@ -6,7 +6,7 @@ from app.models.projects import ProjectsOrm
 from app.models.users import UsersOrm
 from app.schemas.users import CreateUser, ResponseCustomerWithProjects, ResponseDeveloperStats, ResponseUser, ResponseUserShort, UpdateUser
 from app.models.reviews import ReviewsOrm
-from app.services.users import create_user, get_all_users, get_user_by_role
+from app.services.users import create_user, get_all_users, get_user_by_role, get_users_by_projects
 
 
 router = APIRouter(prefix='/user', tags=['Пользователи'])
@@ -31,65 +31,18 @@ async def get_developer_router(session: SessionDep, user_id: int, role='develope
 
 
 @router.get('/customer/{user_id}', summary='Получить работодателя по ID', response_model=ResponseUser)
-async def get_customer_router(session: SessionDep, user_id: int):
-    customer = await session.scalar(
-        select(UsersOrm)
-        .where(UsersOrm.id == user_id)
-        .options(
-            selectinload(UsersOrm.customer_projects),
-            selectinload(UsersOrm.developer_projects)
-        )
-    )
-    if customer is None:
-        raise HTTPException(status_code=404, detail='Пользователь не найден!')
-    elif customer.role != 'customer':
-        raise HTTPException(status_code=404, detail='Пользователь не работодатель!')
+async def get_customer_router(session: SessionDep, user_id: int, role='customer'):
+    customer = await get_user_by_role(session, user_id, role)
     return customer
 
 
-@router.get('/developers/top-rated', summary='Получить топ разработчиков по рейтингу', response_model=list[ResponseUser])
-async def get_top_developers_router(session: SessionDep, limit: int = Query(ge=1, default=10, le=100)):
-    developers = await session.scalars(
-        select(UsersOrm)
-        .where(UsersOrm.role == 'developer')
-        .options(
-            selectinload(UsersOrm.developer_projects),
-            selectinload(UsersOrm.customer_projects),
-        )
-        .order_by(UsersOrm.rating.desc().nullslast())
-        .limit(limit)
-    )
-    result = developers.all()
-    if len(result) == 0:
-        raise HTTPException(status_code=404, detail='Разработчиков нет!')
-    return result
-
-
 @router.get('/developers/most-projects', summary='Получить разработчиков по количеству выполненных проектов', response_model=list[ResponseDeveloperStats])
-async def get_developers_by_projects_router(session: SessionDep, limit: int=Query(ge=1, default=10, le=100)):
-    query = (
-        select(
-            UsersOrm.id,
-            UsersOrm.username,
-            UsersOrm.email,
-            func.count(ProjectsOrm.developer_id).label('projects_count')
-        )
-        .where(
-            UsersOrm.role == 'developer',
-            ProjectsOrm.status == True
-        )   
-        .group_by(UsersOrm.id)
-        .join(ProjectsOrm, ProjectsOrm.developer_id == UsersOrm.id)
-        .order_by(func.count(ProjectsOrm.developer_id).desc())
-        .limit(limit)
-    )
-    developers = (await session.execute(query)).mappings().all()
-    if len(developers) == 0:
-        raise HTTPException(status_code=404, detail='Разработчиков нет!')
-    return developers #TODO: при рефакторинге сделать в отдельную функцию, вынести в лукапс, поменяв роль на переменную и все
+async def get_developers_by_projects_router(session: SessionDep, limit: int=Query(ge=1, default=10, le=100), role='developer'):
+    developers = await get_users_by_projects(session, limit, role)
+    return developers
 
 
-@router.get('/developers/by-reviews', summary='Получить разработчиков отзывам', response_model=list[ResponseDeveloperStats])
+@router.get('/developers/by-rating', summary='Получить разработчиков по рейтингу', response_model=list[ResponseDeveloperStats])
 async def get_developers_by_reviews_router(session: SessionDep, min_rating: int=Query(ge=1, le=5), max_rating: int=Query(ge=1, le=5), limit: int=Query(ge=1, default=10, le=100)):
     if min_rating > max_rating:
         raise HTTPException(status_code=422, detail='Ошибка при фильтре рейтинга!')

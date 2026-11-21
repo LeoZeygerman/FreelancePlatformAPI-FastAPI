@@ -1,7 +1,7 @@
 from pydantic import EmailStr
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.exceptions import NotFoundError
+from app.exceptions import NotFoundError, UnprocessableEntityError
 from app.models.projects import ProjectsOrm
 from app.models.users import UsersOrm
 from app.schemas.users import CreateUser, UpdateUser
@@ -56,6 +56,9 @@ async def get_user_by_role(session: AsyncSession, user_id: int, role: str) -> Us
 
 
 async def get_user_by_rating(session: AsyncSession, limit: int, role: str, min_rating: int, max_rating: int) -> list[UsersOrm]:
+    if min_rating > max_rating:
+        raise UnprocessableEntityError('Ошибка значений рейтинга!')
+
     users = await session.scalars(
         select(UsersOrm)
         .where(
@@ -115,30 +118,6 @@ async def get_users_by_projects(session: AsyncSession, limit: int, role: str) ->
     result = users.mappings().all()
     if len(result) == 0:
         raise NotFoundError('Пользователи не найдены!')
-    return result
-
-
-async def get_developers_by_project_count(session: AsyncSession, limit: int) -> list[UsersOrm]:
-    developers = await session.execute(
-        select(
-            UsersOrm.id,
-            UsersOrm.username,
-            UsersOrm.email,
-            func.count(ProjectsOrm.developer_id).label('projects_count')
-        )
-        .where(
-            UsersOrm.role == 'developer',
-            ProjectsOrm.status == True
-        )
-        .join(ProjectsOrm, ProjectsOrm.developer_id == UsersOrm.id)
-        .group_by(UsersOrm.id)
-        .order_by(func.count(ProjectsOrm.developer_id).desc())
-        .limit(limit)
-    )
-
-    result = developers.mappings().all()
-    if len(result) == 0:
-        raise NotFoundError('Разработчики не найдены!')
     return result
 
 
