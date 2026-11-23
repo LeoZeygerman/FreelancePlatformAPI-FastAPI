@@ -33,6 +33,7 @@ class ProjectsOrm(Base):
     )
 
     payment_status: Mapped['PaymentsOrm'] = relationship(
+        cascade='all, delete-orphan',
         back_populates='project'
     )
 
@@ -43,10 +44,12 @@ class ProjectsOrm(Base):
     )
 
     developer_applications: Mapped[list['ApplicationsOrm']] = relationship(
+        cascade='all, delete-orphan',
         back_populates='project'
     )
 
     project_reviews: Mapped[list['ReviewsOrm']] = relationship(
+        cascade='all, delete-orphan',
         foreign_keys='ReviewsOrm.project_id',
         back_populates='reviewee_project'
     )

@@ -21,25 +21,30 @@ class UsersOrm(Base):
     )
 
     developer_projects: Mapped[list['ProjectsOrm']] = relationship(
+        cascade='all, delete-orphan',
         foreign_keys = 'ProjectsOrm.developer_id',
         back_populates = 'developer'
     )
 
     customer_projects: Mapped[list['ProjectsOrm']] = relationship(
+        cascade='all, delete-orphan',
         foreign_keys='ProjectsOrm.customer_id',
         back_populates='customer'
     )
 
     developer_applications: Mapped[list['ApplicationsOrm']] = relationship(
+        cascade='all, delete-orphan',
         back_populates='developer'
     )
 
     user_reviews: Mapped[list['ReviewsOrm']] = relationship(
+        cascade='all, delete-orphan',
         foreign_keys='ReviewsOrm.reviewer_id',
         back_populates='reviewer'
     )
 
     user_rating: Mapped[list['ReviewsOrm']] = relationship(
+        cascade='all, delete-orphan',
         foreign_keys='ReviewsOrm.reviewee_id',
         back_populates='reviewee'
     )
