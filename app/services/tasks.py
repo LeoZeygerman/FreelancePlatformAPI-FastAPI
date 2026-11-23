@@ -22,7 +22,7 @@ async def create_task(session: AsyncSession, customer_id: int, task: CreateTask)
     )
     session.add(new_task)
     await session.commit()
-    return await get_task_by_id(session, new_task.id)
+    return await get_task_by_id(session, new_task.id, customer_id)
 
 
 async def get_task_by_id(session: AsyncSession, task_id: int, customer_id: int) -> TasksOrm:
@@ -33,11 +33,11 @@ async def get_task_by_id(session: AsyncSession, task_id: int, customer_id: int) 
             selectinload(TasksOrm.project)
         )
     )
-
-    project = await get_project_by_id(session, task.project_id)
     if task is None:
         raise NotFoundError('Задача не найдена!')
-    elif project.customer_id != customer_id:
+
+    project = await get_project_by_id(session, task.project_id)
+    if project.customer_id != customer_id:
         raise AccessDeniedError()
     return task
 
@@ -75,7 +75,7 @@ async def update_tasks(session: AsyncSession, task_id: int, data: UpdateTask, cu
 
 
 async def delete_task(session: AsyncSession, task_id: int, customer_id: int) -> dict:
-    task = await get_task_by_id(session, task_id)
+    task = await get_task_by_id(session, task_id, customer_id)
     project = await get_project_by_id(session, task.project_id)
     if project.customer_id != customer_id:
         raise AccessDeniedError()

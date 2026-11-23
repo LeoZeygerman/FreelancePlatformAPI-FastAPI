@@ -101,6 +101,7 @@ async def update_project(session: AsyncSession, project_id: int, data: UpdatePro
     changes = data.model_dump(exclude_unset=True)
     for key, value in changes.items():
         setattr(project, key, value)
+    await session.commit()
     return await get_project_with_relations(session, project.id)
 
 

@@ -2,9 +2,11 @@ class AppException(Exception):
     status_code = 500
     detail = 'Ошибка сервера!'
 
-    def __init__(self, detail: str | None):
-        if detail:
-            self.detail = detail
+    def __init__(self, detail: str | None = None):
+        self.detail = (
+            detail if detail is not None
+            else self.detail
+        )
 
 
 class NotFoundError(AppException):

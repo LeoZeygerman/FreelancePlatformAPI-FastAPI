@@ -39,7 +39,7 @@ async def get_developers_by_projects_router(session: SessionDep, limit: int=Quer
 
 @router.get('/developers/by-rating', summary='Получить разработчиков по рейтингу', response_model=list[ResponseDeveloperStats])
 async def get_developers_by_rating_router(session: SessionDep, limit: int=Query(ge=1, default=10, le=100), role='developer', min_rating: int=Query(ge=1, le=5), max_rating: int=Query(ge=1, le=5),):
-    developers = get_user_by_rating(session, limit, role, min_rating, max_rating)
+    developers = await get_user_by_rating(session, limit, role, min_rating, max_rating)
     return developers
 
 
@@ -51,7 +51,7 @@ async def get_top_customers_router(session: SessionDep, limit: int = Query(ge=1,
 
 @router.get('/customers/by-cost', summary='Получить создателей с самыми дорогостоящими проектами', response_model=list[ResponseCustomerWithProjects])
 async def get_customers_by_cost_router(session: SessionDep, limit: int=Query(ge=1, default=10, le=100)):
-    customers = get_customers_by_cost(session, limit)
+    customers = await get_customers_by_cost(session, limit)
     return customers
 
 

@@ -49,7 +49,10 @@ async def get_application_by_id(session: AsyncSession, application_id: int) -> A
 async def get_free_projects(session: AsyncSession) -> list[ProjectsOrm]:
     projects = await session.scalars(
         select(ProjectsOrm)
-        .where(ProjectsOrm.developer_id == None)
+        .where(
+            ProjectsOrm.developer_id == None,
+            ProjectsOrm.status == False
+        )
     )
 
     result = projects.all()

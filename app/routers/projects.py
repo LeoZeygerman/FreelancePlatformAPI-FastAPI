@@ -23,7 +23,7 @@ async def get_project_by_id_router(session: SessionDep, project_id: int):
 
 @router.post('/create', summary='Создать проект', response_model=ResponseProject)
 async def create_project_router(session: SessionDep, project: CreateProject):
-    new_project = create_project(session, project)
+    new_project = await create_project(session, project)
     return new_project
 
 
@@ -53,7 +53,7 @@ async def update_project_router(session: SessionDep, project_id: int, data: Upda
 
 @router.post('/add-mark/{project_id}', summary='Выставить оценку')
 async def add_mark_router(session: SessionDep, project: CreateReview, project_id: int):
-    new_mark = add_mark(session, project, project_id)
+    new_mark = await add_mark(session, project, project_id)
     return new_mark
 
 

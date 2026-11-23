@@ -73,5 +73,3 @@ class UpdateProject(BaseModel):
     description: str | None = None
     budget: float | None = None
     status: bool | None = None
-    developer_rating: int | None = Field(default=None, gt=0, le=5)
-    customer_rating: int | None = Field(default=None, gt=0, le=5)
