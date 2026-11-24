@@ -24,40 +24,6 @@ async def get_application_by_id(session: AsyncSession, application_id: int) -> A
     return application
 
 
-async def create_application(session: AsyncSession, application: CreateApplication) -> ApplicationsOrm:
-    project = await get_project_by_id(session, application.project_id)
-    developer = await session.scalar(
-        select(UsersOrm)
-        .where(UsersOrm.email == application.developer_email)
-    )
-    if developer is None:
-        raise NotFoundError('Разработчик не найден!')
-    elif developer.role != 'developer':
-        raise NotFoundError('Пользователь не разработчик!')
-
-    new_application = ApplicationsOrm(
-        project = project,
-        developer = developer,
-        cover_letter = application.cover_letter
-    )
-
-    session.add(new_application)
-    await session.flush()
-
-    check = await session.scalar(
-        select(func.count(ApplicationsOrm))
-        .where(
-            ApplicationsOrm.project_id == application.project_id,
-            ApplicationsOrm.developer_id == developer.id
-        )
-    )
-    if check > 1:
-        raise ApplicationAlreadyExistsError()
-
-    await session.commit()
-    return await get_application_by_id(session, new_application.id)
-
-
 async def get_free_projects(session: AsyncSession) -> list[ProjectsOrm]:
     projects = await session.scalars(
         select(ProjectsOrm)
@@ -98,6 +64,40 @@ async def get_applications_by_rating(session: AsyncSession, limit: int) -> list[
     if len(applications) == 0:
         raise NotFoundError('Заявки не найдены!')
     return applications
+
+
+async def create_application(session: AsyncSession, application: CreateApplication) -> ApplicationsOrm:
+    project = await get_project_by_id(session, application.project_id)
+    developer = await session.scalar(
+        select(UsersOrm)
+        .where(UsersOrm.email == application.developer_email)
+    )
+    if developer is None:
+        raise NotFoundError('Разработчик не найден!')
+    elif developer.role != 'developer':
+        raise NotFoundError('Пользователь не разработчик!')
+
+    new_application = ApplicationsOrm(
+        project = project,
+        developer = developer,
+        cover_letter = application.cover_letter
+    )
+
+    session.add(new_application)
+    await session.flush()
+
+    check = await session.scalar(
+        select(func.count(ApplicationsOrm))
+        .where(
+            ApplicationsOrm.project_id == application.project_id,
+            ApplicationsOrm.developer_id == developer.id
+        )
+    )
+    if check > 1:
+        raise ApplicationAlreadyExistsError()
+
+    await session.commit()
+    return await get_application_by_id(session, new_application.id)
 
 
 async def update_application(session: AsyncSession, application_id: int, developer_id: int, data: UpdateApplication) -> ApplicationsOrm:
