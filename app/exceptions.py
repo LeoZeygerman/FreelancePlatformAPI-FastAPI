@@ -22,3 +22,8 @@ class AccessDeniedError(AppException):
 class UnprocessableEntityError(AppException):
     status_code = 422
     detail = 'Ошибка в значениях!'
+
+
+class ApplicationAlreadyExistsError(AppException):
+    status_code = 409
+    detail = 'Нельзя повторно отправить заявку!'

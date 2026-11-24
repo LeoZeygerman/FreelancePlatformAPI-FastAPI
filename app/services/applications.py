@@ -1,7 +1,7 @@
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import selectinload
 from sqlalchemy.ext.asyncio import AsyncSession
-from app.exceptions import NotFoundError, AccessDeniedError
+from app.exceptions import ApplicationAlreadyExistsError, NotFoundError, AccessDeniedError
 from app.models.applications import ApplicationsOrm
 from app.models.projects import ProjectsOrm
 from app.models.users import UsersOrm
@@ -27,6 +27,18 @@ async def create_application(session: AsyncSession, application: CreateApplicati
     )
 
     session.add(new_application)
+    await session.flush()
+
+    check = await session.scalar(
+        select(func.count(ApplicationsOrm))
+        .where(
+            ApplicationsOrm.project_id == application.project_id,
+            ApplicationsOrm.developer_id == developer.id
+        )
+    )
+    if check > 1:
+        raise ApplicationAlreadyExistsError()
+
     await session.commit()
     return await get_application_by_id(session, new_application.id)
 
