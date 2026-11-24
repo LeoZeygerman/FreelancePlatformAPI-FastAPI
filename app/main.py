@@ -10,7 +10,7 @@ from app.routers.applications import router as applications_router
 from app.routers.users import router as users_router
 from app.routers.projects import router as projects_router
 
-#TODO: Документ-строки, абстракция, добавить разработчика в проект, сложный обработчик ошибок
+#TODO: Документ-строки, абстракция, сложный обработчик ошибок
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     async with engine.begin() as conn:

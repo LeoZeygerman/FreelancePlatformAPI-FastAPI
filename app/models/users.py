@@ -21,7 +21,6 @@ class UsersOrm(Base):
     )
 
     developer_projects: Mapped[list['ProjectsOrm']] = relationship(
-        cascade='all, delete-orphan',
         foreign_keys = 'ProjectsOrm.developer_id',
         back_populates = 'developer'
     )

@@ -15,10 +15,10 @@ async def create_application(session: AsyncSession, application: CreateApplicati
         select(UsersOrm)
         .where(UsersOrm.email == application.developer_email)
     )
-    if developer.role != 'developer':
-        raise NotFoundError('Пользователь не разработчик!')
-    elif developer is None:
+    if developer is None:
         raise NotFoundError('Разработчик не найден!')
+    elif developer.role != 'developer':
+        raise NotFoundError('Пользователь не разработчик!')
 
     new_application = ApplicationsOrm(
         project = project,

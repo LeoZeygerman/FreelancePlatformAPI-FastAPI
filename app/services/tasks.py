@@ -61,7 +61,7 @@ async def get_tasks_by_priority(session: AsyncSession, project_id: int, priority
 
 
 async def update_tasks(session: AsyncSession, task_id: int, data: UpdateTask, customer_id: int) -> TasksOrm:
-    task = await get_task_by_id(session, task_id)
+    task = await get_task_by_id(session, task_id, customer_id)
     project = await get_project_by_id(session, task.project_id)
     if project.customer_id != customer_id:
         raise AccessDeniedError()
