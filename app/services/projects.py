@@ -11,25 +11,15 @@ from app.schemas.projects import CreateProject, UpdateProject
 from app.schemas.reviews import CreateReview
 
 
-async def create_project(session: AsyncSession, project: CreateProject) -> ProjectsOrm:
-    new_project = ProjectsOrm(
-        title=project.title,
-        description=project.description,
-        budget=project.budget,
-        customer_id=project.customer_id,
-        project_task=[
-            TasksOrm(
-                task=task.task,
-                description=task.description,
-                priority=task.priority,
-                deadline=task.deadline
-            )
-            for task in project.project_task
-        ]
+async def get_all_projects(session: AsyncSession) -> list[ProjectsOrm]:
+    projects = await session.scalars(
+        select(ProjectsOrm)
     )
-    session.add(new_project)
-    await session.commit()
-    return await get_project_with_relations(session, new_project.id)
+
+    result = projects.all()
+    if len(result) == 0:
+        raise NotFoundError('Проекты не найдены!')
+    return result
 
 
 async def get_project_with_relations(session: AsyncSession, project_id: int) -> ProjectsOrm:
@@ -48,37 +38,6 @@ async def get_project_with_relations(session: AsyncSession, project_id: int) -> 
     if project is None:
         raise NotFoundError(f'Проекты не найдены!')
     return project
-
-
-async def get_all_projects(session: AsyncSession) -> list[ProjectsOrm]:
-    projects = await session.scalars(
-        select(ProjectsOrm)
-    )
-
-    result = projects.all()
-    if len(result) == 0:
-        raise NotFoundError('Проекты не найдены!')
-    return result
-
-
-async def add_developer_in_project(session: AsyncSession, customer_id: int, developer_id: int, project_id: int):
-    project = await get_project_by_id(session, project_id)
-    if project.customer_id != customer_id:
-        raise AccessDeniedError()
-
-    application = await session.scalar(
-        select(ApplicationsOrm)
-        .where(
-            ApplicationsOrm.project_id == project_id,
-            ApplicationsOrm.developer_id == developer_id
-        )
-    )
-    if application is None:
-        raise NotFoundError('Заявка не найдена!')
-
-    project.developer_id = developer_id
-    await session.commit()
-    return {'msg': 'Разработчик добавлен!'}
 
 
 async def get_best_paid_projects(session: AsyncSession, limit: int) -> list[ProjectsOrm]:
@@ -113,16 +72,45 @@ async def get_projects_by_applications(session: AsyncSession, limit: int) -> lis
     return result
 
 
-async def update_project(session: AsyncSession, project_id: int, data: UpdateProject, user_id: int) -> ProjectsOrm:
-    project = await get_project_with_relations(session, project_id)
-    if project.customer_id != user_id:
+async def create_project(session: AsyncSession, project: CreateProject) -> ProjectsOrm:
+    new_project = ProjectsOrm(
+        title=project.title,
+        description=project.description,
+        budget=project.budget,
+        customer_id=project.customer_id,
+        project_task=[
+            TasksOrm(
+                task=task.task,
+                description=task.description,
+                priority=task.priority,
+                deadline=task.deadline
+            )
+            for task in project.project_task
+        ]
+    )
+    session.add(new_project)
+    await session.commit()
+    return await get_project_with_relations(session, new_project.id)
+
+
+async def add_developer_in_project(session: AsyncSession, customer_id: int, developer_id: int, project_id: int):
+    project = await get_project_by_id(session, project_id)
+    if project.customer_id != customer_id:
         raise AccessDeniedError()
 
-    changes = data.model_dump(exclude_unset=True)
-    for key, value in changes.items():
-        setattr(project, key, value)
+    application = await session.scalar(
+        select(ApplicationsOrm)
+        .where(
+            ApplicationsOrm.project_id == project_id,
+            ApplicationsOrm.developer_id == developer_id
+        )
+    )
+    if application is None:
+        raise NotFoundError('Заявка не найдена!')
+
+    project.developer_id = developer_id
     await session.commit()
-    return await get_project_with_relations(session, project.id)
+    return {'msg': 'Разработчик добавлен!'}
 
 
 async def add_mark(session: AsyncSession, review: CreateReview, project_id: int) -> dict:
@@ -147,6 +135,18 @@ async def add_mark(session: AsyncSession, review: CreateReview, project_id: int)
 
     await session.commit()
     return {'msg': f'Оценка пользователю {user.username} успешно выставлена!'}
+
+
+async def update_project(session: AsyncSession, project_id: int, data: UpdateProject, user_id: int) -> ProjectsOrm:
+    project = await get_project_with_relations(session, project_id)
+    if project.customer_id != user_id:
+        raise AccessDeniedError()
+
+    changes = data.model_dump(exclude_unset=True)
+    for key, value in changes.items():
+        setattr(project, key, value)
+    await session.commit()
+    return await get_project_with_relations(session, project.id)
 
 
 async def delete_project(session: AsyncSession, project_id: int, user_id: int) -> dict:
