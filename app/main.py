@@ -1,5 +1,6 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from app.database import engine
 from app.exceptions import AppException
@@ -26,6 +27,17 @@ async def exception_handler(request: Request, exc: AppException):
     return JSONResponse(
         status_code=exc.status_code,
         content={'detail': exc.detail}
+    )
+
+
+@app.exception_handler(RequestValidationError)
+async def valication_exception_handler(request: Request, exc: RequestValidationError):
+    return JSONResponse(
+        status_code=422,
+        content={
+            'detail': 'Ошибка валидации данных.',
+            'errors': exc.errors()
+        }
     )
 
 
