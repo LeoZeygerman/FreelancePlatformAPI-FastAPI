@@ -61,6 +61,26 @@ async def get_all_projects(session: AsyncSession) -> list[ProjectsOrm]:
     return result
 
 
+async def add_developer_in_project(session: AsyncSession, customer_id: int, developer_id: int, project_id: int):
+    project = await get_project_by_id(session, project_id)
+    if project.customer_id != customer_id:
+        raise AccessDeniedError()
+
+    application = await session.scalar(
+        select(ApplicationsOrm)
+        .where(
+            ApplicationsOrm.project_id == project_id,
+            ApplicationsOrm.developer_id == developer_id
+        )
+    )
+    if application is None:
+        raise NotFoundError('Заявка не найдена!')
+
+    project.developer_id = developer_id
+    await session.commit()
+    return {'msg': 'Разработчик добавлен!'}
+
+
 async def get_best_paid_projects(session: AsyncSession, limit: int) -> list[ProjectsOrm]:
     projects = await session.scalars(
         select(ProjectsOrm)
