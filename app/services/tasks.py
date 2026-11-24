@@ -7,24 +7,6 @@ from app.schemas.tasks import CreateTask, UpdateTask
 from app.services.lookups import get_project_by_id, get_user_by_id
 
 
-async def create_task(session: AsyncSession, customer_id: int, task: CreateTask) -> TasksOrm:
-    project = await get_project_by_id(session, task.project_id)
-    user = await get_user_by_id(session, customer_id)
-    if project.customer_id != user.id:
-        raise AccessDeniedError()
-
-    new_task = TasksOrm(
-        project=project,
-        task=task.task,
-        description=task.description,
-        priority=task.priority,
-        deadline=task.deadline
-    )
-    session.add(new_task)
-    await session.commit()
-    return await get_task_by_id(session, new_task.id, customer_id)
-
-
 async def get_task_by_id(session: AsyncSession, task_id: int, customer_id: int) -> TasksOrm:
     task = await session.scalar(
         select(TasksOrm)
@@ -58,6 +40,24 @@ async def get_tasks_by_priority(session: AsyncSession, project_id: int, priority
     if len(result) == 0:
         raise NotFoundError('Задачи не найдены!')
     return result
+
+
+async def create_task(session: AsyncSession, customer_id: int, task: CreateTask) -> TasksOrm:
+    project = await get_project_by_id(session, task.project_id)
+    user = await get_user_by_id(session, customer_id)
+    if project.customer_id != user.id:
+        raise AccessDeniedError()
+
+    new_task = TasksOrm(
+        project=project,
+        task=task.task,
+        description=task.description,
+        priority=task.priority,
+        deadline=task.deadline
+    )
+    session.add(new_task)
+    await session.commit()
+    return await get_task_by_id(session, new_task.id, customer_id)
 
 
 async def update_tasks(session: AsyncSession, task_id: int, data: UpdateTask, customer_id: int) -> TasksOrm:
