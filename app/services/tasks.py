@@ -25,6 +25,12 @@ async def get_task_by_id(session: AsyncSession, task_id: int, customer_id: int) 
 
 
 async def get_tasks_by_priority(session: AsyncSession, project_id: int, priority: str) -> list[TasksOrm]:
+    """
+    Retrieve project tasks with the specified priority.
+
+    Return only tasks that belong to the given project
+    and match the requested priority level.
+    """
     tasks = await session.scalars(
         select(TasksOrm)
         .options(

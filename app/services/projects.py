@@ -41,6 +41,12 @@ async def get_project_with_relations(session: AsyncSession, project_id: int) -> 
 
 
 async def get_best_paid_projects(session: AsyncSession, limit: int) -> list[ProjectsOrm]:
+    """
+    Retrieve projects with the highest budgets.
+
+    Sort projects by budget in descending order
+    and limit the number of returned results.
+    """
     projects = await session.scalars(
         select(ProjectsOrm)
         .order_by(ProjectsOrm.budget.desc())
@@ -54,6 +60,12 @@ async def get_best_paid_projects(session: AsyncSession, limit: int) -> list[Proj
 
 
 async def get_projects_by_applications(session: AsyncSession, limit: int) -> list[ProjectsOrm]:
+    """
+    Retrieve projects ranked by application count.
+
+    Count the applications for each project and
+    sort projects by application count in descending order.
+    """
     projects = await session.execute(
         select(
             ProjectsOrm.id.label('project_id'),
@@ -94,6 +106,13 @@ async def create_project(session: AsyncSession, project: CreateProject) -> Proje
 
 
 async def add_developer_in_project(session: AsyncSession, customer_id: int, developer_id: int, project_id: int):
+    """
+    Assign a developer to a project from its applications.
+
+    Verify that the customer owns the project and
+    that the selected developer has submitted an application.
+    Assign the developer to the project.
+    """
     project = await get_project_by_id(session, project_id)
     if project.customer_id != customer_id:
         raise AccessDeniedError()
