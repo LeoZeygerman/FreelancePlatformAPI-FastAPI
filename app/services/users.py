@@ -9,28 +9,6 @@ from sqlalchemy.orm import selectinload
 from app.services.lookups import get_user_by_id
 
 
-async def create_user(session: AsyncSession, user: CreateUser) -> UsersOrm:
-    new_user = UsersOrm(
-        username = user.username,
-        role = user.role,
-        email = user.email
-    )
-    session.add(new_user)
-    await session.commit()
-    return await get_user_by_email(session, user.email)
-
-
-async def get_user_by_email(session: AsyncSession, user_email: EmailStr) -> UsersOrm:
-    user = await session.scalar(
-        select(UsersOrm)
-        .where(UsersOrm.email == user_email)
-    )
-
-    if user is None:
-        raise NotFoundError(f'Пользователь с email {user_email} не найден!')
-    return user
-
-
 async def get_all_users(session: AsyncSession) -> list[UsersOrm]:
     users = await session.scalars(
         select(UsersOrm)
@@ -140,6 +118,28 @@ async def get_customers_by_cost(session: AsyncSession, limit: int) -> list[Users
     if len(result) == 0:
         raise NotFoundError('Пользователи не найдены!')
     return result
+
+
+async def create_user(session: AsyncSession, user: CreateUser) -> UsersOrm:
+    new_user = UsersOrm(
+        username = user.username,
+        role = user.role,
+        email = user.email
+    )
+    session.add(new_user)
+    await session.commit()
+    return await get_user_by_email(session, user.email)
+
+
+async def get_user_by_email(session: AsyncSession, user_email: EmailStr) -> UsersOrm:
+    user = await session.scalar(
+        select(UsersOrm)
+        .where(UsersOrm.email == user_email)
+    )
+
+    if user is None:
+        raise NotFoundError(f'Пользователь с email {user_email} не найден!')
+    return user
 
 
 async def update_user(session: AsyncSession, user_id: int, data: UpdateUser) -> UsersOrm:
