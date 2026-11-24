@@ -9,6 +9,21 @@ from app.schemas.applications import CreateApplication, UpdateApplication
 from app.services.lookups import get_project_by_id, get_user_by_id
 
 
+async def get_application_by_id(session: AsyncSession, application_id: int) -> ApplicationsOrm:
+    application = await session.scalar(
+        select(ApplicationsOrm)
+        .where(ApplicationsOrm.id == application_id)
+        .options(
+            selectinload(ApplicationsOrm.developer),
+            selectinload(ApplicationsOrm.project)
+        )
+    )
+
+    if application is None:
+        raise NotFoundError('Заявка не найдена!')
+    return application
+
+
 async def create_application(session: AsyncSession, application: CreateApplication) -> ApplicationsOrm:
     project = await get_project_by_id(session, application.project_id)
     developer = await session.scalar(
@@ -41,21 +56,6 @@ async def create_application(session: AsyncSession, application: CreateApplicati
 
     await session.commit()
     return await get_application_by_id(session, new_application.id)
-
-
-async def get_application_by_id(session: AsyncSession, application_id: int) -> ApplicationsOrm:
-    application = await session.scalar(
-        select(ApplicationsOrm)
-        .where(ApplicationsOrm.id == application_id)
-        .options(
-            selectinload(ApplicationsOrm.developer),
-            selectinload(ApplicationsOrm.project)
-        )
-    )
-
-    if application is None:
-        raise NotFoundError('Заявка не найдена!')
-    return application
 
 
 async def get_free_projects(session: AsyncSession) -> list[ProjectsOrm]:
