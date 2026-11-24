@@ -1,15 +1,8 @@
-from fastapi import APIRouter, HTTPException, Query
-from sqlalchemy import func, select
-from sqlalchemy.orm import selectinload
+from fastapi import APIRouter, Query
 from app.database import SessionDep
-from app.models.applications import ApplicationsOrm
-from app.models.projects import ProjectsOrm
-from app.models.reviews import ReviewsOrm
-from app.models.tasks import TasksOrm
-from app.models.users import UsersOrm
 from app.schemas.projects import CreateProject, ResponseProject, ResponseProjectShort, UpdateProject, ResponseProjectWithApplicationCount
 from app.schemas.reviews import CreateReview
-from app.services.projects import add_mark, create_project, delete_project, get_all_projects, get_best_paid_projects, get_project_with_relations, get_projects_by_applications, update_project
+from app.services.projects import add_mark, create_project, delete_project, get_all_projects, get_best_paid_projects, get_project_with_relations, get_projects_by_applications, update_project, add_developer_in_project
 
 
 router = APIRouter(prefix='/project', tags=['Проекты'])
@@ -25,6 +18,12 @@ async def get_project_by_id_router(session: SessionDep, project_id: int):
 async def create_project_router(session: SessionDep, project: CreateProject):
     new_project = await create_project(session, project)
     return new_project
+
+
+@router.patch('/add-developer', summary='Добавить разработчика в проект')
+async def add_developer_in_project_router(session: SessionDep, customer_id: int, developer_id: int, project_id: int):
+    result = await add_developer_in_project(session, customer_id, developer_id, project_id)
+    return result
 
 
 @router.get('/all', summary='Получить все проекты', response_model=list[ResponseProjectShort])
