@@ -32,6 +32,12 @@ async def get_user_by_role(session: AsyncSession, user_id: int, role: str) -> Us
 
 
 async def get_user_by_rating(session: AsyncSession, limit: int, role: str, min_rating: int, max_rating: int) -> list[UsersOrm]:
+    """
+    Retrieve users filtered by role and rating range.
+
+    Sort users by rating in descending order and
+    limit the number of returned results.
+    """
     if min_rating > max_rating:
         raise UnprocessableEntityError('Ошибка значений рейтинга!')
 
@@ -56,6 +62,12 @@ async def get_user_by_rating(session: AsyncSession, limit: int, role: str, min_r
 
 
 async def get_users_by_projects(session: AsyncSession, limit: int, role: str) -> list[UsersOrm]:
+    """
+    Retrieve users ranked by the number of completed projects.
+
+    Filter users by role and sort them by completed
+    project count in descending order.
+    """
     if role == 'developer':
         users = await session.execute(
             select(
@@ -98,6 +110,12 @@ async def get_users_by_projects(session: AsyncSession, limit: int, role: str) ->
 
 
 async def get_customers_by_cost(session: AsyncSession, limit: int) -> list[UsersOrm]:
+    """
+    Retrieve customers and their projects sorted by budget.
+
+    Sort the results by project budget in descending
+    order, with the most expensive projects first.
+    """
     customers = await session.execute(
         select(
             UsersOrm.id,
