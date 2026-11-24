@@ -25,6 +25,12 @@ async def get_application_by_id(session: AsyncSession, application_id: int) -> A
 
 
 async def get_free_projects(session: AsyncSession) -> list[ProjectsOrm]:
+    """
+    Retrieve available projects without assigned developers.
+
+    Return projects that are not completed and
+    do not have a developer assigned.
+    """
     projects = await session.scalars(
         select(ProjectsOrm)
         .where(
@@ -40,6 +46,12 @@ async def get_free_projects(session: AsyncSession) -> list[ProjectsOrm]:
 
 
 async def get_applications_by_rating(session: AsyncSession, limit: int) -> list[ApplicationsOrm]:
+    """
+    Retrieve applications ranked by developer rating.
+
+    Sort applications by the developers' ratings
+    in descending order, with the highest-rated first.
+    """
     query = await session.execute(
         select(
             ApplicationsOrm.project_id,
