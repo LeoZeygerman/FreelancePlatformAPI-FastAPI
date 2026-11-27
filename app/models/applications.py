@@ -1,4 +1,4 @@
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKey, UniqueConstraint
 from app.models.base import Base
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import TYPE_CHECKING
@@ -24,4 +24,12 @@ class ApplicationsOrm(Base):
     developer: Mapped['UsersOrm'] = relationship(
         foreign_keys=developer_id,
         back_populates='developer_applications'
+    )
+
+    __table_args__ = (
+        UniqueConstraint(
+            'project_id',
+            'developer_id',
+            name='uq_project_developer'
+        ),
     )
