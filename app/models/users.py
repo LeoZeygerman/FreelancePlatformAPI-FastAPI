@@ -51,8 +51,8 @@ class UsersOrm(Base):
 
     __table_args__ = (
         Index(
+            'idx_users_role_rating',
             'role',
-            'rating',
-            name='idx_users_role_rating'
+            rating.desc()
         ),
     )
