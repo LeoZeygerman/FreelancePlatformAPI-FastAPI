@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy import Index
 from app.models.base import Base
 from typing import TYPE_CHECKING
 
@@ -46,4 +47,12 @@ class UsersOrm(Base):
         cascade='all, delete-orphan',
         foreign_keys='ReviewsOrm.reviewee_id',
         back_populates='reviewee'
+    )
+
+    __table_args__ = (
+        Index(
+            'role',
+            'rating',
+            name='idx_users_role_rating'
+        ),
     )
